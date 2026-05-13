@@ -27,8 +27,8 @@ export const metadata: Metadata = {
     title: "PAIBP",
   },
   icons: {
-    icon: "/logo-pai.png",
-    apple: "/logo-pai.png",
+    icon: "/logo.ico",
+    apple: "/logo.webp",
   },
 };
 
