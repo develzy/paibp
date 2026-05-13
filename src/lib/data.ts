@@ -5,7 +5,7 @@ export const DB = {
   setObj(k: string, v: any) { localStorage.setItem('paibp_'+k, JSON.stringify(v)) }
 };
 
-export const DEFAULT_USER = { username:'guru', password:'paibp123', name:'Guru PAIBP' };
+export const DEFAULT_USER_INITIAL = { username:'guru', password:'paibp123', name:'Guru PAIBP' };
 
 export function getProfile() { 
   return DB.getObj('profile') || { name:'Guru PAIBP', nip:'', school:'', subject:'Pendidikan Agama Islam dan Budi Pekerti' }; 
@@ -26,6 +26,7 @@ export function getCurrentAcademicYear() {
     return `${year - 1}/${year}`;
   }
 }
+
 
 export const class1Students: { name: string, nis: string, nisn?: string }[] = [
   { name: "ADFIN LOIN PRATAMA", nis: "4644", nisn: "3181571403" },
@@ -288,7 +289,14 @@ export const class6Students: { name: string, nis: string, nisn?: string }[] = [
 
 export function seedDummyData() {
   if (typeof window === 'undefined') return;
-  if (localStorage.getItem('paibp_seeded_v3')) return;
+  
+  // Seed Users if not exists
+  const existingUsers = DB.get('users');
+  if (existingUsers.length === 0) {
+    DB.set('users', [DEFAULT_USER_INITIAL]);
+  }
+
+  if (localStorage.getItem('paibp_seeded_v6_dbauth')) return;
   
   const currentYear = getCurrentAcademicYear();
   const dummyClasses = [
@@ -299,63 +307,27 @@ export function seedDummyData() {
   const dummyStudents: any[] = [];
   
   class1Students.forEach((s, idx) => {
-    dummyStudents.push({
-      id: `s0${idx}`,
-      nis: s.nis,
-      nisn: s.nisn || '',
-      name: s.name,
-      classId: 'c1' // Kelas 1
-    });
+    dummyStudents.push({ id: `s0${idx}`, nis: s.nis, nisn: s.nisn || '', name: s.name, classId: 'c1' });
   });
 
   class2Students.forEach((s, idx) => {
-    dummyStudents.push({
-      id: `s2_${idx}`,
-      nis: s.nis,
-      nisn: s.nisn || '',
-      name: s.name,
-      classId: 'c2' // Kelas 2
-    });
+    dummyStudents.push({ id: `s2_${idx}`, nis: s.nis, nisn: s.nisn || '', name: s.name, classId: 'c2' });
   });
 
   class3Students.forEach((s, idx) => {
-    dummyStudents.push({
-      id: `s3_${idx}`,
-      nis: s.nis,
-      nisn: s.nisn || '',
-      name: s.name,
-      classId: 'c3' // Kelas 3
-    });
+    dummyStudents.push({ id: `s3_${idx}`, nis: s.nis, nisn: s.nisn || '', name: s.name, classId: 'c3' });
   });
 
   class4Students.forEach((s, idx) => {
-    dummyStudents.push({
-      id: `s4_${idx}`,
-      nis: s.nis,
-      nisn: s.nisn || '',
-      name: s.name,
-      classId: 'c4' // Kelas 4
-    });
+    dummyStudents.push({ id: `s4_${idx}`, nis: s.nis, nisn: s.nisn || '', name: s.name, classId: 'c4' });
   });
 
   class5Students.forEach((s, idx) => {
-    dummyStudents.push({
-      id: `s5_${idx}`,
-      nis: s.nis,
-      nisn: s.nisn || '',
-      name: s.name,
-      classId: 'c5' // Kelas 5
-    });
+    dummyStudents.push({ id: `s5_${idx}`, nis: s.nis, nisn: s.nisn || '', name: s.name, classId: 'c5' });
   });
 
   class6Students.forEach((s, idx) => {
-    dummyStudents.push({
-      id: `s6_${idx}`,
-      nis: s.nis,
-      nisn: s.nisn || '',
-      name: s.name,
-      classId: 'c6' // Kelas 6
-    });
+    dummyStudents.push({ id: `s6_${idx}`, nis: s.nis, nisn: s.nisn || '', name: s.name, classId: 'c6' });
   });
 
   DB.set('classes', dummyClasses);
@@ -364,8 +336,5 @@ export function seedDummyData() {
   DB.set('sas', []);
   DB.set('practice', []);
   DB.set('asaj', []);
-  localStorage.setItem('paibp_seeded_v3', 'true');
-  localStorage.setItem('paibp_seeded_v4', 'true');
-  localStorage.setItem('paibp_seeded_v5', 'true');
-  localStorage.setItem('paibp_seeded_v6_nodummy', 'true');
+  localStorage.setItem('paibp_seeded_v6_dbauth', 'true');
 }

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, School, Users, Calendar, FileText, Hand, Award, BarChart3, Printer, Settings, LogOut, Moon, Sun, User, Menu, ChevronDown, Info, Star, Target, Lock, Scale, Download, Shield, Wifi, WifiOff, GraduationCap 
 } from 'lucide-react';
-import { DB, getProfile, seedDummyData, DEFAULT_USER, class1Students, class2Students, class3Students, class4Students, class5Students, class6Students, getCurrentAcademicYear } from '@/lib/data';
+import { DB, getProfile, seedDummyData, class1Students, class2Students, class3Students, class4Students, class5Students, class6Students, getCurrentAcademicYear } from '@/lib/data';
 import { useStore } from '@/store/useStore';
 
 export default function Home() {
@@ -225,8 +225,11 @@ export default function Home() {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (username === DEFAULT_USER.username && password === DEFAULT_USER.password) {
-      const userSession = { username, name: getProfile().name };
+    const users = DB.get('users');
+    const matchedUser = users.find((u: any) => u.username === username && u.password === password);
+
+    if (matchedUser) {
+      const userSession = { username: matchedUser.username, name: matchedUser.name || getProfile().name };
       DB.setObj('session', userSession);
       setSession(userSession);
       setLoginError(false);
@@ -240,7 +243,7 @@ export default function Home() {
 
   if (!session) {
     return (
-      <div id="login-screen" className="flex flex-col items-center justify-center min-h-screen p-4 lg:p-12 bg-slate-50 dark:bg-slate-950 fade-in relative overflow-hidden">
+      <div id="login-screen" style={{ zoom: '80%' }} className="flex flex-col items-center justify-center min-h-screen p-4 lg:p-12 bg-slate-50 dark:bg-slate-950 fade-in relative overflow-hidden">
         {/* Decorative background elements */}
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 pointer-events-none">
           <div className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-primary-400/20 dark:bg-primary-900/20 blur-3xl filter"></div>
@@ -249,7 +252,7 @@ export default function Home() {
 
         <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center relative z-10">
           {/* Left Side: Information */}
-          <div className="order-2 lg:order-1 flex flex-col h-full max-h-[85vh]">
+          <div className="order-2 lg:order-1 flex flex-col h-full">
             <div className="hidden lg:block space-y-1 mb-6">
               <h2 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight leading-tight">
                 Kelola Penilaian <span className="text-primary-500">Lebih Cerdas.</span>
@@ -259,14 +262,8 @@ export default function Home() {
               </p>
             </div>
             
-            <div className="space-y-3 overflow-y-auto pr-4 lg:max-h-[60vh] custom-scrollbar scroll-smooth">
+            <div className="space-y-3">
               {[
-                { 
-                  id: 0, 
-                  title: 'Kredensial Demo', 
-                  icon: Info, 
-                  content: <><p className="text-gray-600 dark:text-gray-300 mb-2 text-[11px]">Gunakan kredensial berikut untuk masuk:</p><div className="flex gap-2"><div className="flex-1 bg-white dark:bg-slate-800 rounded-xl p-2.5 border border-gray-100 dark:border-slate-700 shadow-sm"><p className="text-[9px] text-gray-500 uppercase font-bold mb-0.5">Username</p><p className="text-gray-900 dark:text-white font-mono text-xs">guru</p></div><div className="flex-1 bg-white dark:bg-slate-800 rounded-xl p-2.5 border border-gray-100 dark:border-slate-700 shadow-sm"><p className="text-[9px] text-gray-500 uppercase font-bold mb-0.5">Password</p><p className="text-gray-900 dark:text-white font-mono text-xs">paibp123</p></div></div></>
-                },
                 {
                   id: 1,
                   title: 'Fitur & Keunggulan',
@@ -480,7 +477,7 @@ export default function Home() {
         </div>
 
         <div className="mt-12 text-center relative z-10 w-full opacity-60">
-           <p className="text-xs text-gray-400 dark:text-gray-500 tracking-wide">Crafted with ❤️ by <span className="font-bold text-gray-600 dark:text-gray-300">DEVELZY</span> — SDN 01 KALISALAK</p>
+           <p className="text-xs text-gray-400 dark:text-gray-500 tracking-wide">Crafted by <span className="font-bold text-gray-600 dark:text-gray-300">DEVELZY</span> — SDN 01 KALISALAK</p>
         </div>
       </div>
     );
