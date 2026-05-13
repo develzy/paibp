@@ -26,6 +26,10 @@ export const metadata: Metadata = {
     statusBarStyle: "default",
     title: "PAIBP",
   },
+  icons: {
+    icon: "/logo-pai.png",
+    apple: "/logo-pai.png",
+  },
 };
 
 export default function RootLayout({
