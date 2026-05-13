@@ -1,3 +1,7 @@
+#:schema node_modules/wrangler/config-schema.json
+name = "paibp"
+pages_build_output_dir = ".vercel/output/static"
+
 [[d1_databases]]
 binding = "DB"
 database_name = "paibp-db"
