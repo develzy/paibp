@@ -1,0 +1,49 @@
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+import { getCurrentAcademicYear } from '@/lib/data';
+
+export interface ClassData { id: string; name: string; year: string; }
+export interface StudentData { id: string; nis: string; nisn?: string; name: string; classId: string; }
+export interface WeeklyScore { studentId: string; classId: string; semester: number; weeks: number; [key: string]: any; }
+export interface SASScore { studentId: string; classId: string; score: number | string; }
+export interface PracticeScore { studentId: string; classId: string; wudhu: any; quran: any; sholat: any; tayamum: any; }
+export interface ASAJScore { studentId: string; pg: number | string; essay: number | string; }
+
+interface AppState {
+  classes: ClassData[];
+  students: StudentData[];
+  weeklyScores: WeeklyScore[];
+  sasScores: SASScore[];
+  practiceScores: PracticeScore[];
+  asajScores: ASAJScore[];
+  activeYear: string;
+  setClasses: (updater: (prev: ClassData[]) => ClassData[]) => void;
+  setStudents: (updater: (prev: StudentData[]) => StudentData[]) => void;
+  setWeeklyScores: (updater: (prev: WeeklyScore[]) => WeeklyScore[]) => void;
+  setSASScores: (updater: (prev: SASScore[]) => SASScore[]) => void;
+  setPracticeScores: (updater: (prev: PracticeScore[]) => PracticeScore[]) => void;
+  setASAJScores: (updater: (prev: ASAJScore[]) => ASAJScore[]) => void;
+  setActiveYear: (year: string) => void;
+}
+
+export const useStore = create<AppState>()(
+  persist(
+    (set) => ({
+      classes: [],
+      students: [],
+      weeklyScores: [],
+      sasScores: [],
+      practiceScores: [],
+      asajScores: [],
+      activeYear: getCurrentAcademicYear(),
+      setClasses: (updater) => set((state) => ({ classes: updater(state.classes) })),
+      setStudents: (updater) => set((state) => ({ students: updater(state.students) })),
+      setWeeklyScores: (updater) => set((state) => ({ weeklyScores: updater(state.weeklyScores) })),
+      setSASScores: (updater) => set((state) => ({ sasScores: updater(state.sasScores) })),
+      setPracticeScores: (updater) => set((state) => ({ practiceScores: updater(state.practiceScores) })),
+      setASAJScores: (updater) => set((state) => ({ asajScores: updater(state.asajScores) })),
+      setActiveYear: (year) => set({ activeYear: year }),
+    }),
+    { name: 'paibp_store' }
+  )
+);

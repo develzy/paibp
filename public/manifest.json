@@ -1,0 +1,18 @@
+{
+  "name": "PAIBP Assessment System",
+  "short_name": "PAIBP",
+  "description": "Smart Assessment System untuk Pendidikan Agama Islam dan Budi Pekerti",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#059669",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/logo-pai.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
