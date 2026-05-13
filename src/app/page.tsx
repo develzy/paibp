@@ -14,6 +14,8 @@ export default function Home() {
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState(false);
   const [activeAccordion, setActiveAccordion] = useState<number | null>(null);
+  const store = useStore();
+
   
   useEffect(() => {
     setIsClient(true);
@@ -223,19 +225,39 @@ export default function Home() {
     }
   }, []);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const users = DB.get('users');
-    const matchedUser = users.find((u: any) => u.username === username && u.password === password);
+    try {
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        body: JSON.stringify({ username, password }),
+      });
+      const result = await res.json();
 
-    if (matchedUser) {
-      const userSession = { username: matchedUser.username, name: matchedUser.name || getProfile().name };
-      DB.setObj('session', userSession);
-      setSession(userSession);
-      setLoginError(false);
-    } else {
+      if (result.success) {
+        const userSession = result.user;
+        DB.setObj('session', userSession);
+        setSession(userSession);
+        setLoginError(false);
+
+        // Fetch Cloud Data after login
+        const cloudDataRes = await fetch('/api/sync');
+        const cloudData = await cloudDataRes.json();
+        
+        if (cloudData && !cloudData.error) {
+          if (cloudData.classes) store.setClasses(() => cloudData.classes);
+          if (cloudData.students) store.setStudents(() => cloudData.students);
+          if (cloudData.weekly) store.setWeeklyScores(() => cloudData.weekly);
+          if (cloudData.sas) store.setSASScores(() => cloudData.sas);
+          if (cloudData.practice) store.setPracticeScores(() => cloudData.practice);
+          if (cloudData.asaj) store.setASAJScores(() => cloudData.asaj);
+        }
+      } else {
+        setLoginError(true);
+        setTimeout(() => setLoginError(false), 3000);
+      }
+    } catch (err) {
       setLoginError(true);
-      setTimeout(() => setLoginError(false), 3000);
     }
   };
 
@@ -510,6 +532,7 @@ import { Recap } from "@/components/Recap";
 import { Report } from "@/components/Report";
 import { Alumni } from "@/components/Alumni";
 import { Profile } from "@/components/Profile";
+import CloudSync from "@/components/CloudSync";
 
 function MainApp({ session, setSession }: { session: any, setSession: any }) {
   const [activePage, setActivePage] = useState('dashboard');
@@ -530,6 +553,25 @@ function MainApp({ session, setSession }: { session: any, setSession: any }) {
     
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
+
+    // Initial Cloud Fetch
+    const fetchCloud = async () => {
+      try {
+        const res = await fetch('/api/sync');
+        const cloudData = await res.json();
+        if (cloudData && !cloudData.error) {
+          if (cloudData.classes) store.setClasses(() => cloudData.classes);
+          if (cloudData.students) store.setStudents(() => cloudData.students);
+          if (cloudData.weekly) store.setWeeklyScores(() => cloudData.weekly);
+          if (cloudData.sas) store.setSASScores(() => cloudData.sas);
+          if (cloudData.practice) store.setPracticeScores(() => cloudData.practice);
+          if (cloudData.asaj) store.setASAJScores(() => cloudData.asaj);
+        }
+      } catch (err) {
+        console.error('Initial cloud sync failed', err);
+      }
+    };
+    fetchCloud();
     
     return () => {
       window.removeEventListener('online', handleOnline);
@@ -612,6 +654,11 @@ function MainApp({ session, setSession }: { session: any, setSession: any }) {
               {isOnline ? <Wifi size={14} className="animate-pulse" /> : <WifiOff size={14} />}
               <span className="hidden sm:inline">{isOnline ? 'Online' : 'Offline'}</span>
             </div>
+
+            <div className="hidden lg:block">
+              <CloudSync />
+            </div>
+
             
             <div className="h-6 w-px bg-gray-200 dark:bg-slate-700 hidden sm:block"></div>
             <button onClick={toggleDark} className="p-2.5 rounded-xl bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 transition shadow-sm border border-gray-200/50 dark:border-slate-700/50">

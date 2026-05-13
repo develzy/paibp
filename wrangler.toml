@@ -1,0 +1,4 @@
+[[d1_databases]]
+binding = "DB"
+database_name = "paibp-db"
+database_id = "PASTE_YOUR_DATABASE_ID_HERE"
