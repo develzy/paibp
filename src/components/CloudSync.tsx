@@ -64,7 +64,7 @@ export default function CloudSync() {
         </p>
       </div>
       <button 
-        onClick={performSync}
+        onClick={() => performSync(false)}
         disabled={syncing}
         className="p-1.5 hover:bg-gray-200 dark:hover:bg-slate-700 rounded-full transition-all text-gray-500 active:scale-95"
         title="Sync to Cloud"
