@@ -5,6 +5,7 @@ import { getProfile } from "@/lib/data";
 import { Download, Printer, Package } from "lucide-react";
 import { useState } from "react";
 import { ConfirmModal } from "./ConfirmModal";
+import { toast } from "react-hot-toast";
 
 export function Report() {
   const store = useStore();
