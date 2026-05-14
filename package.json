@@ -9,7 +9,7 @@
     "dev": "next dev",
     "build": "next build",
     "build:cf": "npx @cloudflare/next-on-pages@1",
-    "build:exe": "set \"NEXT_PUBLIC_EXPORT=true\" && set \"CSC_IDENTITY_AUTO_DISCOVERY=false\" && (if exist src\\app\\api ren src\\app\\api _api) && next build && (if exist src\\app\\_api ren src\\app\\_api api) && electron-builder",
+    "build:exe": "set \"NEXT_PUBLIC_EXPORT=true\" && set \"CSC_IDENTITY_AUTO_DISCOVERY=false\" && (if exist dist rd /s /q dist) && (if exist out rd /s /q out) && (if exist src\\app\\api ren src\\app\\api _api) && next build && (if exist src\\app\\_api ren src\\app\\_api api) && electron-builder",
     "electron:dev": "electron .",
     "start": "next start",
     "lint": "eslint"
