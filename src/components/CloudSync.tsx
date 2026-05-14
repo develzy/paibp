@@ -9,7 +9,8 @@ export default function CloudSync() {
   const [syncing, setSyncing] = useState(false);
   const [lastSync, setLastSync] = useState<Date | null>(null);
 
-  const performSync = async () => {
+  const performSync = async (isAuto = false) => {
+    if (syncing) return;
     setSyncing(true);
     try {
       const dataToSync = {
@@ -30,14 +31,26 @@ export default function CloudSync() {
       }
 
       setLastSync(new Date());
-      toast.success('Data tersinkronisasi ke Cloud!');
+      if (!isAuto) toast.success('Data tersinkronisasi ke Cloud!');
     } catch (err) {
       console.error(err);
-      toast.error('Gagal sinkronisasi ke Cloud');
+      if (!isAuto) toast.error('Gagal sinkronisasi ke Cloud');
     } finally {
       setSyncing(false);
     }
   };
+
+  // Auto-sync effect
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      // Only auto-sync if we have data to sync
+      if (store.classes.length > 0) {
+        performSync(true);
+      }
+    }, 3000); // Wait 3 seconds after last change
+
+    return () => clearTimeout(timer);
+  }, [store.classes, store.students, store.weeklyScores, store.sasScores, store.practiceScores, store.asajScores]);
 
   return (
     <div className="flex items-center gap-2 px-3 py-1 bg-white/50 dark:bg-slate-900/50 rounded-full border border-gray-200/50 dark:border-slate-700/50 shadow-sm backdrop-blur-md">
