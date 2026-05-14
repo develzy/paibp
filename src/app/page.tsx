@@ -266,14 +266,14 @@ export default function Home() {
 
   if (!session) {
     return (
-      <div id="login-screen" style={{ zoom: '80%' }} className="flex flex-col items-center justify-center min-h-screen p-4 lg:p-12 bg-slate-50 dark:bg-slate-950 fade-in relative overflow-hidden">
+      <div id="login-screen" className="flex flex-col min-h-screen p-4 lg:p-12 bg-slate-50 dark:bg-slate-950 fade-in relative overflow-hidden">
         {/* Decorative background elements */}
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 pointer-events-none">
           <div className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-primary-400/20 dark:bg-primary-900/20 blur-3xl filter"></div>
           <div className="absolute top-[60%] -right-[10%] w-[40%] h-[60%] rounded-full bg-emerald-400/20 dark:bg-emerald-900/20 blur-3xl filter"></div>
         </div>
 
-        <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center relative z-10">
+        <div className="w-full max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-start relative z-10 flex-1">
           {/* Left Side: Information */}
           <div className="order-2 lg:order-1 flex flex-col h-full">
             <div className="hidden lg:block space-y-1 mb-6">
@@ -450,7 +450,7 @@ export default function Home() {
           </div>
 
           {/* Right Side: Login Form */}
-          <div className="order-1 lg:order-2 flex flex-col items-center lg:items-start">
+          <div className="order-1 lg:order-2 flex flex-col items-center lg:items-start lg:sticky lg:top-12">
             <div className="glass relative z-10 rounded-[2.5rem] p-10 w-full max-w-md shadow-2xl border border-white/50 dark:border-slate-700/50">
               <div className="text-center mb-10">
                 <img src="./logo.png" alt="Logo PAI" className="w-24 h-24 mx-auto rounded-3xl shadow-xl mb-6 object-cover bg-white mix-blend-multiply dark:mix-blend-normal dark:p-1" />
@@ -499,8 +499,8 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="mt-12 text-center relative z-10 w-full opacity-60">
-           <p className="text-xs text-gray-400 dark:text-gray-500 tracking-wide">Crafted by <span className="font-bold text-gray-600 dark:text-gray-300">DEVELZY</span> — SDN 01 KALISALAK</p>
+        <div className="mt-auto pt-12 pb-6 text-center relative z-10 w-full opacity-60">
+           <p className="text-[10px] text-gray-400 dark:text-gray-500 tracking-wide">Crafted by <span className="font-bold text-gray-600 dark:text-gray-300">DEVELZY</span> — SDN 01 KALISALAK</p>
         </div>
       </div>
     );
