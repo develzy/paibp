@@ -3,6 +3,7 @@
 import { useStore } from "@/store/useStore";
 import { Plus, Download, Upload, Trash2, X, Check, FileSpreadsheet, Edit, ChevronUp, ChevronDown } from "lucide-react";
 import { useState } from "react";
+import { ConfirmModal } from "./ConfirmModal";
 import * as XLSX from "xlsx";
 import { toast } from "react-hot-toast";
 
@@ -18,6 +19,7 @@ export function Students() {
   const [search, setSearch] = useState("");
   const [filterClass, setFilterClass] = useState("");
   const [sortConfig, setSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' } | null>(null);
+  const [deleteData, setDeleteData] = useState<{ id: string, name: string } | null>(null);
 
   const handleSort = (key: string) => {
     let direction: 'asc' | 'desc' = 'asc';
@@ -50,13 +52,18 @@ export function Students() {
   };
 
   const confirmDelete = (id: string, stName: string) => {
-    if (confirm(`Apakah Anda yakin ingin menghapus siswa ${stName}?`)) {
-      store.setStudents((prev) => prev.filter(s => s.id !== id));
-      store.setWeeklyScores((prev) => prev.filter(w => w.studentId !== id));
-      store.setSASScores((prev) => prev.filter(s => s.studentId !== id));
-      store.setPracticeScores((prev) => prev.filter(p => p.studentId !== id));
-      store.setASAJScores((prev) => prev.filter(a => a.studentId !== id));
-    }
+    setDeleteData({ id, name: stName });
+  };
+
+  const performDelete = () => {
+    if (!deleteData) return;
+    const { id } = deleteData;
+    store.setStudents((prev) => prev.filter(s => s.id !== id));
+    store.setWeeklyScores((prev) => prev.filter(w => w.studentId !== id));
+    store.setSASScores((prev) => prev.filter(s => s.studentId !== id));
+    store.setPracticeScores((prev) => prev.filter(p => p.studentId !== id));
+    store.setASAJScores((prev) => prev.filter(a => a.studentId !== id));
+    toast.success('Data siswa berhasil dihapus');
   };
 
   const exportStudents = () => {
@@ -282,7 +289,14 @@ export function Students() {
       <div className="mt-2 text-xs text-gray-400 dark:text-gray-500">
         Menampilkan {filtered.length} dari {store.students.length} siswa
       </div>
-    </div>
+      <ConfirmModal 
+        isOpen={!!deleteData}
+        onClose={() => setDeleteData(null)}
+        onConfirm={performDelete}
+        title="Hapus Data Siswa?"
+        message={`Apakah Anda yakin ingin menghapus siswa "${deleteData?.name}"? Seluruh nilai yang berkaitan dengan siswa ini juga akan terhapus selamanya.`}
+        confirmText="Ya, Hapus Siswa"
+      />
     </>
   );
 }

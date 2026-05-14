@@ -3,6 +3,7 @@
 import { useStore } from "@/store/useStore";
 import { Download, Upload, X, FileSpreadsheet, Scale, ChevronUp, ChevronDown, ArrowUpDown, Trash2 } from "lucide-react";
 import { useState, useMemo } from "react";
+import { ConfirmModal } from "./ConfirmModal";
 import * as XLSX from "xlsx";
 import { toast } from "react-hot-toast";
 
@@ -13,6 +14,7 @@ export function SASScores() {
   const [showImport, setShowImport] = useState(false);
   const [search, setSearch] = useState("");
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' | null }>({ key: 'name', direction: 'asc' });
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   const filteredClasses = store.classes.filter(c => c.year === store.activeYear);
   const isValidClass = filteredClasses.some(c => c.id === classId);
@@ -106,12 +108,8 @@ export function SASScores() {
   };
 
   const deleteScores = () => {
-    if (!classId) return toast.error('Pilih kelas terlebih dahulu');
-    const cls = store.classes.find(c => c.id === classId);
-    if (confirm(`Apakah Anda yakin ingin MENGHAPUS SEMUA NILAI SAS di ${cls?.name} (Semester ${semester})?`)) {
-      store.setSASScores((prev) => prev.filter(s => !(s.classId === classId && s.semester === semester)));
-      toast.success(`Semua nilai SAS ${cls?.name} Sem ${semester} berhasil dihapus`);
-    }
+    store.setSASScores((prev) => prev.filter(s => !(s.classId === classId && s.semester === semester)));
+    toast.success(`Semua nilai SAS berhasil dihapus`);
   };
 
   const exportSAS = () => {
@@ -234,7 +232,7 @@ export function SASScores() {
         <button onClick={() => setShowImport(true)} className="px-3 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-medium flex items-center gap-1.5 shadow-sm transition text-sm">
           <Upload size={15} /> Import
         </button>
-        <button onClick={deleteScores} className="px-3 py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl font-medium flex items-center gap-1.5 shadow-sm transition text-sm">
+        <button onClick={() => { if(!classId) return toast.error('Pilih kelas dulu'); setIsDeleteModalOpen(true); }} className="px-3 py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl font-medium flex items-center gap-1.5 shadow-sm transition text-sm">
           <Trash2 size={15} /> Hapus Data
         </button>
       </div>
@@ -360,6 +358,15 @@ export function SASScores() {
           )}
         </div>
       </div>
+
+      <ConfirmModal 
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={deleteScores}
+        title="Hapus Nilai SAS?"
+        message={`Apakah Anda yakin ingin menghapus semua nilai SAS di ${store.classes.find(c => c.id === classId)?.name} (Semester ${semester})?`}
+        confirmText="Ya, Hapus Semua"
+      />
     </>
   );
 }
