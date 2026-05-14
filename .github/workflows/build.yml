@@ -1,0 +1,35 @@
+name: Build and Release
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build Next.js
+        run: |
+          $env:NEXT_PUBLIC_EXPORT="true"
+          if (Test-Path "src/app/api") { Rename-Item "src/app/api" "_api" }
+          npm run build
+          if (Test-Path "src/app/_api") { Rename-Item "src/app/_api" "api" }
+
+      - name: Build and Publish Electron App
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx electron-builder --publish always
