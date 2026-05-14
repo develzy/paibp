@@ -218,14 +218,42 @@ export function Report() {
   };
 
   const exportSingleReport = () => {
-    window.print();
+    const element = document.getElementById('report-card-capture');
+    if (!element) return toast.error('Gagal menemukan data raport');
+    
+    const st = store.students.find(x => x.id === studentId);
+    
+    // Load html2pdf dynamically if not exists
+    const runExport = () => {
+      const opt = {
+        margin: 10,
+        filename: `Raport_${st?.name || 'Siswa'}_${cls?.name || ''}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+      
+      // @ts-ignore
+      window.html2pdf().set(opt).from(element).save();
+    };
+
+    // @ts-ignore
+    if (window.html2pdf) {
+      runExport();
+    } else {
+      const script = document.createElement('script');
+      script.src = "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js";
+      script.onload = runExport;
+      document.head.appendChild(script);
+      toast.success('Menyiapkan mesin PDF...');
+    }
   };
 
   const renderCard = () => {
     if (!s || !cls) return null;
     const data = getReportData(s.id);
     return (
-      <div className="bg-white dark:bg-slate-900 shadow-2xl rounded-sm border-t-[6px] border-primary-600 p-8 lg:p-12 max-w-[850px] mx-auto text-slate-800 dark:text-slate-100 font-sans print:shadow-none print:border-none print:p-0 relative overflow-hidden">
+      <div id="report-card-capture" className="bg-white dark:bg-slate-900 shadow-2xl rounded-sm border-t-[6px] border-primary-600 p-8 lg:p-12 max-w-[850px] mx-auto text-slate-800 dark:text-slate-100 font-sans print:shadow-none print:border-none print:p-0 relative overflow-hidden">
         {/* Watermark */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 -rotate-45 text-slate-900/[0.03] dark:text-white/[0.02] font-black text-4xl lg:text-5xl pointer-events-none z-0 whitespace-nowrap text-center">
           Aplikasi PAIBP Assessment<br/>Smart System v4.0
