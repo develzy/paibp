@@ -4,6 +4,7 @@ import { useStore } from "@/store/useStore";
 import { getProfile } from "@/lib/data";
 import { Download, Printer, Package } from "lucide-react";
 import { useState } from "react";
+import { ConfirmModal } from "./ConfirmModal";
 
 export function Report() {
   const store = useStore();
@@ -11,6 +12,7 @@ export function Report() {
   const [semester, setSemester] = useState<number>(1);
   const [studentId, setStudentId] = useState("");
   const [search, setSearch] = useState("");
+  const [alertData, setAlertData] = useState<{ title: string, message: string } | null>(null);
 
   const filteredClasses = store.classes.filter(c => c.year === store.activeYear);
   const isValidClass = filteredClasses.some(c => c.id === classId);
@@ -199,7 +201,7 @@ export function Report() {
           <option value="">Pilih Siswa</option>
           {students.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
         </select>
-        <button onClick={() => alert("Gunakan fitur Export Kelas untuk HTML, atau Print to PDF")} className="px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-medium flex items-center gap-1.5 shadow-sm transition text-sm">
+        <button onClick={() => setAlertData({ title: 'Informasi Export', message: 'Gunakan fitur "Export Kelas" untuk mengunduh semua raport dalam format HTML profesional, atau gunakan fitur "Print" untuk mencetak langsung ke PDF.' })} className="px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-medium flex items-center gap-1.5 shadow-sm transition text-sm">
           <Download size={15} /> Export
         </button>
         <button onClick={exportReportClass} className="px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-medium flex items-center gap-1.5 shadow-sm transition text-sm">
@@ -213,6 +215,17 @@ export function Report() {
       <div className="w-full">
         {renderCard()}
       </div>
+
+      <ConfirmModal 
+        isOpen={!!alertData}
+        onClose={() => setAlertData(null)}
+        onConfirm={() => setAlertData(null)}
+        title={alertData?.title || ''}
+        message={alertData?.message || ''}
+        confirmText="Dimengerti"
+        showCancel={false}
+        variant="primary"
+      />
     </div>
   );
 }

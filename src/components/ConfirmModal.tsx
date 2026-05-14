@@ -10,6 +10,7 @@ interface ConfirmModalProps {
   message: string;
   confirmText?: string;
   cancelText?: string;
+  showCancel?: boolean;
   variant?: 'danger' | 'warning' | 'primary';
 }
 
@@ -19,8 +20,9 @@ export function ConfirmModal({
   onConfirm, 
   title, 
   message, 
-  confirmText = "Ya, Hapus", 
+  confirmText = "Ya, Lakukan", 
   cancelText = "Batal",
+  showCancel = true,
   variant = 'danger'
 }: ConfirmModalProps) {
   if (!isOpen) return null;
@@ -66,12 +68,14 @@ export function ConfirmModal({
             >
               {confirmText}
             </button>
-            <button 
-              onClick={onClose}
-              className="w-full py-3 text-gray-500 dark:text-gray-400 font-semibold hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
-            >
-              {cancelText}
-            </button>
+            {showCancel && (
+              <button 
+                onClick={onClose}
+                className="w-full py-3 text-gray-500 dark:text-gray-400 font-semibold hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+              >
+                {cancelText}
+              </button>
+            )}
           </div>
         </div>
       </div>

@@ -3,6 +3,7 @@
 import { useStore } from "@/store/useStore";
 import { Download, ChevronUp, ChevronDown, ArrowUpDown } from "lucide-react";
 import { useState, useMemo } from "react";
+import { ConfirmModal } from "./ConfirmModal";
 import * as XLSX from "xlsx";
 
 export function Recap() {
@@ -10,6 +11,7 @@ export function Recap() {
   const [classId, setClassId] = useState("");
   const [semester, setSemester] = useState<number>(1);
   const [search, setSearch] = useState("");
+  const [alertMsg, setAlertMsg] = useState<string | null>(null);
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' | null }>({ key: 'name', direction: 'asc' });
 
   const filteredClasses = store.classes.filter(c => c.year === store.activeYear);
@@ -126,7 +128,7 @@ export function Recap() {
   };
 
   const exportRecap = () => {
-    if (!classId) return alert('Pilih kelas terlebih dahulu');
+    if (!classId) return setAlertMsg('Silakan pilih kelas terlebih dahulu sebelum mengekspor data rekapitulasi nilai.');
     const cls = store.classes.find(c => c.id === classId);
     const exportData = rows.map((r, idx) => {
       const row: any = {
@@ -232,6 +234,17 @@ export function Recap() {
           </table>
         )}
       </div>
+
+      <ConfirmModal 
+        isOpen={!!alertMsg}
+        onClose={() => setAlertMsg(null)}
+        onConfirm={() => setAlertMsg(null)}
+        title="Peringatan"
+        message={alertMsg || ''}
+        confirmText="Dimengerti"
+        showCancel={false}
+        variant="warning"
+      />
     </div>
   );
 }

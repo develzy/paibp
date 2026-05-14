@@ -3,6 +3,7 @@
 import { useStore, ClassData } from "@/store/useStore";
 import { Plus, Download, Upload, Edit, Trash2, X, FileSpreadsheet } from "lucide-react";
 import { useState } from "react";
+import { ConfirmModal } from "./ConfirmModal";
 import * as XLSX from "xlsx";
 import { toast } from "react-hot-toast";
 
@@ -11,6 +12,7 @@ export function Classes() {
   const [name, setName] = useState("");
   const [year, setYear] = useState(store.activeYear);
   const [showImport, setShowImport] = useState(false);
+  const [deleteData, setDeleteData] = useState<{ id: string, name: string } | null>(null);
   
   const filteredClasses = store.classes.filter(c => c.year === store.activeYear);
 
@@ -21,9 +23,14 @@ export function Classes() {
   };
 
   const confirmDeleteClass = (id: string, clsName: string) => {
-    if (confirm(`Apakah Anda yakin ingin menghapus kelas ${clsName}?`)) {
-      store.setClasses((prev) => prev.filter(c => c.id !== id));
-    }
+    setDeleteData({ id, name: clsName });
+  };
+
+  const performDelete = () => {
+    if (!deleteData) return;
+    const { id } = deleteData;
+    store.setClasses((prev) => prev.filter(c => c.id !== id));
+    toast.success('Kelas berhasil dihapus');
   };
 
   const exportClasses = () => {
@@ -160,6 +167,14 @@ export function Classes() {
         </table>
       </div>
     </div>
+      <ConfirmModal 
+        isOpen={!!deleteData}
+        onClose={() => setDeleteData(null)}
+        onConfirm={performDelete}
+        title="Hapus Kelas?"
+        message={`Apakah Anda yakin ingin menghapus kelas "${deleteData?.name}"? Seluruh data siswa dan nilai di kelas ini akan terhapus selamanya.`}
+        confirmText="Ya, Hapus Semua"
+      />
     </>
   );
 }
