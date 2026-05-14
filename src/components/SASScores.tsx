@@ -1,8 +1,8 @@
 "use client";
 
 import { useStore } from "@/store/useStore";
-import { Download, Upload, X, FileSpreadsheet, Scale } from "lucide-react";
-import { useState } from "react";
+import { Download, Upload, X, FileSpreadsheet, Scale, ChevronUp, ChevronDown, ArrowUpDown } from "lucide-react";
+import { useState, useMemo } from "react";
 import * as XLSX from "xlsx";
 import { toast } from "react-hot-toast";
 
@@ -11,15 +11,53 @@ export function SASScores() {
   const [classId, setClassId] = useState("");
   const [showImport, setShowImport] = useState(false);
   const [search, setSearch] = useState("");
+  const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' | null }>({ key: 'name', direction: 'asc' });
 
   const filteredClasses = store.classes.filter(c => c.year === store.activeYear);
   const isValidClass = filteredClasses.some(c => c.id === classId);
-  const students = isValidClass 
-    ? store.students.filter(s => 
-        s.classId === classId && 
-        (!search || s.name.toLowerCase().includes(search.toLowerCase()) || s.nis.includes(search))
-      ) 
-    : [];
+  const students = useMemo(() => {
+    if (!isValidClass) return [];
+    
+    let base = store.students.filter(s => 
+      s.classId === classId && 
+      (!search || s.name.toLowerCase().includes(search.toLowerCase()) || s.nis.includes(search))
+    );
+
+    if (sortConfig.key && sortConfig.direction) {
+      base.sort((a, b) => {
+        let valA: any, valB: any;
+        
+        if (sortConfig.key === 'name') {
+          valA = a.name.toLowerCase();
+          valB = b.name.toLowerCase();
+        } else if (sortConfig.key === 'score') {
+          const scA = store.sasScores.find(x => x.studentId === a.id && x.classId === classId)?.score || 0;
+          const scB = store.sasScores.find(x => x.studentId === b.id && x.classId === classId)?.score || 0;
+          valA = Number(scA);
+          valB = Number(scB);
+        }
+
+        if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+    
+    return base;
+  }, [isValidClass, store.students, store.sasScores, classId, search, sortConfig]);
+
+  const requestSort = (key: string) => {
+    let direction: 'asc' | 'desc' = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const getSortIcon = (key: string) => {
+    if (sortConfig.key !== key) return <ArrowUpDown size={12} className="text-gray-300" />;
+    return sortConfig.direction === 'asc' ? <ChevronUp size={12} className="text-primary-500" /> : <ChevronDown size={12} className="text-primary-500" />;
+  };
 
   const getWeeklyAvg = (studentId: string, clsId: string) => {
     const sems = store.weeklyScores.filter((x) => x.studentId === studentId && x.classId === clsId);
@@ -252,13 +290,21 @@ export function SASScores() {
           <p className="p-6 text-center text-gray-400 text-sm">Belum ada siswa di kelas ini</p>
         ) : (
           <table className="w-full text-sm">
-            <thead className="bg-gray-50 dark:bg-slate-700">
+            <thead className="bg-gray-50 dark:bg-slate-700 sticky top-0 z-10">
               <tr>
-                <th className="p-3 text-left font-semibold text-xs">Nama</th>
+                <th onClick={() => requestSort('name')} className="p-3 text-left font-semibold text-xs cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors group">
+                  <div className="flex items-center gap-1.5">
+                    Nama {getSortIcon('name')}
+                  </div>
+                </th>
                 <th className="p-3 font-semibold text-xs text-center bg-blue-50/30 dark:bg-blue-900/10">PG (0-15)</th>
                 <th className="p-3 font-semibold text-xs text-center bg-blue-50/30 dark:bg-blue-900/10">Isian (0-20)</th>
                 <th className="p-3 font-semibold text-xs text-center bg-blue-50/30 dark:bg-blue-900/10">Uraian (0-15)</th>
-                <th className="p-3 font-semibold text-xs text-center">NA SAS</th>
+                <th onClick={() => requestSort('score')} className="p-3 font-semibold text-xs text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors group bg-primary-50/20">
+                  <div className="flex items-center justify-center gap-1.5">
+                    NA SAS {getSortIcon('score')}
+                  </div>
+                </th>
                 <th className="p-3 font-semibold text-xs text-center">Nilai Raport</th>
                 <th className="p-3 font-semibold text-xs text-center">Predikat</th>
                 <th className="p-3 font-semibold text-xs text-center">Status</th>

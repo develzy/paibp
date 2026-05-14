@@ -1,8 +1,8 @@
 "use client";
 
 import { useStore } from "@/store/useStore";
-import { Download, Upload, X, FileSpreadsheet } from "lucide-react";
-import { useState } from "react";
+import { Download, Upload, X, FileSpreadsheet, ChevronUp, ChevronDown, ArrowUpDown } from "lucide-react";
+import { useState, useMemo } from "react";
 import * as XLSX from "xlsx";
 import { toast } from "react-hot-toast";
 
@@ -13,10 +13,56 @@ export function ASAJ() {
   const classId = kelas6?.id || '';
   const [showImport, setShowImport] = useState(false);
   const [search, setSearch] = useState("");
-  const students = store.students.filter(s => 
-    s.classId === classId && 
-    (!search || s.name.toLowerCase().includes(search.toLowerCase()) || s.nis.includes(search))
-  );
+  const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' | null }>({ key: 'name', direction: 'asc' });
+
+  const students = useMemo(() => {
+    let base = store.students.filter(s => 
+      s.classId === classId && 
+      (!search || s.name.toLowerCase().includes(search.toLowerCase()) || s.nis.includes(search))
+    );
+
+    if (sortConfig.key && sortConfig.direction) {
+      base.sort((a, b) => {
+        let valA: any, valB: any;
+        
+        if (sortConfig.key === 'name') {
+          valA = a.name.toLowerCase();
+          valB = b.name.toLowerCase();
+        } else if (sortConfig.key === 'score') {
+          const aData = store.asajScores.find(x => x.studentId === a.id) || { pg: 0, essay: 0 };
+          const bData = store.asajScores.find(x => x.studentId === b.id) || { pg: 0, essay: 0 };
+          
+          const getVal = (data: any) => {
+            const pg = Number(data.pg || 0);
+            const essay = Number(data.essay || 0);
+            return (pg + essay);
+          };
+          
+          valA = getVal(aData);
+          valB = getVal(bData);
+        }
+
+        if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+    
+    return base;
+  }, [store.students, store.asajScores, classId, search, sortConfig]);
+
+  const requestSort = (key: string) => {
+    let direction: 'asc' | 'desc' = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const getSortIcon = (key: string) => {
+    if (sortConfig.key !== key) return <ArrowUpDown size={12} className="text-gray-300" />;
+    return sortConfig.direction === 'asc' ? <ChevronUp size={12} className="text-primary-500" /> : <ChevronDown size={12} className="text-primary-500" />;
+  };
 
   const handleScoreChange = (studentId: string, field: 'pg' | 'essay', val: string) => {
     store.setASAJScores((prev) => {
@@ -191,13 +237,21 @@ export function ASAJ() {
           <p className="p-6 text-center text-gray-400 text-sm">Belum ada siswa di kelas 6</p>
         ) : (
           <table className="w-full text-sm">
-            <thead className="bg-gray-50 dark:bg-slate-700">
+            <thead className="bg-gray-50 dark:bg-slate-700 sticky top-0 z-10 shadow-sm">
               <tr>
-                <th className="p-3 text-left font-semibold text-xs">Nama</th>
+                <th onClick={() => requestSort('name')} className="p-3 text-left font-semibold text-xs cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors group">
+                  <div className="flex items-center gap-1.5">
+                    Nama {getSortIcon('name')}
+                  </div>
+                </th>
                 <th className="p-3 text-xs font-semibold text-center">PG (0-35)</th>
                 <th className="p-3 text-xs font-semibold text-center">Uraian (0-15)</th>
                 <th className="p-3 font-semibold text-xs text-center">Total</th>
-                <th className="p-3 font-semibold text-xs text-center">Nilai</th>
+                <th onClick={() => requestSort('score')} className="p-3 font-semibold text-xs text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors bg-primary-50/20">
+                  <div className="flex items-center justify-center gap-1.5">
+                    Nilai {getSortIcon('score')}
+                  </div>
+                </th>
                 <th className="p-3 font-semibold text-xs text-center">Predikat</th>
               </tr>
             </thead>

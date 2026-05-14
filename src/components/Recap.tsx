@@ -1,14 +1,14 @@
 "use client";
 
 import { useStore } from "@/store/useStore";
-import { Download } from "lucide-react";
-import { useState } from "react";
+import { Download, ChevronUp, ChevronDown, ArrowUpDown } from "lucide-react";
+import { useState, useMemo } from "react";
 import * as XLSX from "xlsx";
 
 export function Recap() {
   const store = useStore();
-  const [classId, setClassId] = useState("");
   const [search, setSearch] = useState("");
+  const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' | null }>({ key: 'name', direction: 'asc' });
 
   const filteredClasses = store.classes.filter(c => c.year === store.activeYear);
   const isValidClass = filteredClasses.some(c => c.id === classId);
@@ -59,28 +59,69 @@ export function Recap() {
     return { total, nilai };
   };
 
-  const rows = students.map(s => {
-    const avgW = getWeeklyAvg(s.id, classId);
-    const sas = store.sasScores.find(x => x.studentId === s.id && x.classId === classId)?.score || '';
-    const raport = avgW !== null && sas !== '' ? ((avgW + +sas) / 2) : null;
-    const pr = store.practiceScores.find(x => x.studentId === s.id && x.classId === classId);
-    const praktik = pr ? calcFinalPractice(pr) : '-';
-    const asaj = isKelas6 ? (() => {
-      const a = store.asajScores.find(x => x.studentId === s.id);
-      return a ? calcASAJ(a).nilai : '-';
-    })() : '-';
+  const rows = useMemo(() => {
+    if (!isValidClass) return [];
+    
+    let base = students.map(s => {
+      const avgW = getWeeklyAvg(s.id, classId);
+      const sas = store.sasScores.find(x => x.studentId === s.id && x.classId === classId)?.score || '';
+      const raport = avgW !== null && sas !== '' ? ((avgW + +sas) / 2) : null;
+      const pr = store.practiceScores.find(x => x.studentId === s.id && x.classId === classId);
+      const praktik = pr ? calcFinalPractice(pr) : '-';
+      const asaj = isKelas6 ? (() => {
+        const a = store.asajScores.find(x => x.studentId === s.id);
+        return a ? calcASAJ(a).nilai : '-';
+      })() : '-';
 
-    return {
-      name: s.name,
-      avgW: avgW?.toFixed(1) || '-',
-      sas: sas || '-',
-      raport: raport?.toFixed(1) || '-',
-      praktik, asaj, raportNum: raport,
-      nis: s.nis
-    };
-  }).filter(r => 
-    !search || r.name.toLowerCase().includes(search.toLowerCase()) || r.nis.includes(search)
-  ).sort((a, b) => (b.raportNum || 0) - (a.raportNum || 0));
+      return {
+        name: s.name,
+        avgW: avgW?.toFixed(1) || '-',
+        sas: sas || '-',
+        raport: raport?.toFixed(1) || '-',
+        praktik, asaj, raportNum: raport,
+        sasNum: sas !== '' ? Number(sas) : -1,
+        nis: s.nis
+      };
+    }).filter(r => 
+      !search || r.name.toLowerCase().includes(search.toLowerCase()) || r.nis.includes(search)
+    );
+
+    if (sortConfig.key && sortConfig.direction) {
+      base.sort((a, b) => {
+        let valA: any, valB: any;
+        
+        if (sortConfig.key === 'name') {
+          valA = a.name.toLowerCase();
+          valB = b.name.toLowerCase();
+        } else if (sortConfig.key === 'sas') {
+          valA = a.sasNum;
+          valB = b.sasNum;
+        } else if (sortConfig.key === 'raport') {
+          valA = a.raportNum || 0;
+          valB = b.raportNum || 0;
+        }
+
+        if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+    
+    return base;
+  }, [students, classId, isValidClass, store.sasScores, store.weeklyScores, store.practiceScores, store.asajScores, search, sortConfig, isKelas6]);
+
+  const requestSort = (key: string) => {
+    let direction: 'asc' | 'desc' = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const getSortIcon = (key: string) => {
+    if (sortConfig.key !== key) return <ArrowUpDown size={12} className="text-gray-300" />;
+    return sortConfig.direction === 'asc' ? <ChevronUp size={12} className="text-primary-500" /> : <ChevronDown size={12} className="text-primary-500" />;
+  };
 
   const exportRecap = () => {
     if (!classId) return alert('Pilih kelas terlebih dahulu');
@@ -140,17 +181,29 @@ export function Recap() {
           <p className="p-6 text-center text-gray-400 text-sm">Belum ada siswa</p>
         ) : (
           <table className="w-full text-sm">
-            <thead className="bg-gray-50 dark:bg-slate-700">
+            <thead className="bg-gray-50 dark:bg-slate-700 sticky top-0 z-10">
               <tr>
                 <th className="p-2 font-semibold text-xs">#</th>
-                <th className="p-2 text-left font-semibold text-xs">Nama</th>
-                <th className="p-2 font-semibold text-xs">Mingguan</th>
-                <th className="p-2 font-semibold text-xs">SAS</th>
-                <th className="p-2 font-semibold text-xs">Raport</th>
-                <th className="p-2 font-semibold text-xs">Praktik</th>
+                <th onClick={() => requestSort('name')} className="p-2 text-left font-semibold text-xs cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors">
+                  <div className="flex items-center gap-1.5">
+                    Nama {getSortIcon('name')}
+                  </div>
+                </th>
+                <th className="p-2 font-semibold text-xs text-center">Mingguan</th>
+                <th onClick={() => requestSort('sas')} className="p-2 font-semibold text-xs text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors">
+                  <div className="flex items-center justify-center gap-1.5">
+                    SAS {getSortIcon('sas')}
+                  </div>
+                </th>
+                <th onClick={() => requestSort('raport')} className="p-2 font-semibold text-xs text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors bg-primary-50/20">
+                  <div className="flex items-center justify-center gap-1.5">
+                    Raport {getSortIcon('raport')}
+                  </div>
+                </th>
+                <th className="p-2 font-semibold text-xs text-center">Praktik</th>
                 {isKelas6 && <th className="p-2 font-semibold text-xs">ASAJ</th>}
-                <th className="p-2 font-semibold text-xs">Predikat</th>
-                <th className="p-2 font-semibold text-xs">Status</th>
+                <th className="p-2 font-semibold text-xs text-center">Predikat</th>
+                <th className="p-2 font-semibold text-xs text-center">Status</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-slate-700">

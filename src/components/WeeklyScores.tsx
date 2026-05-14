@@ -1,8 +1,8 @@
 "use client";
 
 import { useStore } from "@/store/useStore";
-import { Download, Upload, X, FileSpreadsheet } from "lucide-react";
-import { useState } from "react";
+import { Download, Upload, X, FileSpreadsheet, ChevronUp, ChevronDown, ArrowUpDown } from "lucide-react";
+import { useState, useMemo } from "react";
 import * as XLSX from "xlsx";
 import { toast } from "react-hot-toast";
 
@@ -13,15 +13,63 @@ export function WeeklyScores() {
   const [weeksCount, setWeeksCount] = useState<number>(20);
   const [showImport, setShowImport] = useState(false);
   const [search, setSearch] = useState("");
+  const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' | null }>({ key: 'name', direction: 'asc' });
 
   const filteredClasses = store.classes.filter(c => c.year === store.activeYear);
   const isValidClass = filteredClasses.some(c => c.id === classId);
-  const students = isValidClass 
-    ? store.students.filter(s => 
-        s.classId === classId && 
-        (!search || s.name.toLowerCase().includes(search.toLowerCase()) || s.nis.includes(search))
-      ) 
-    : [];
+  const students = useMemo(() => {
+    if (!isValidClass) return [];
+    
+    let base = store.students.filter(s => 
+      s.classId === classId && 
+      (!search || s.name.toLowerCase().includes(search.toLowerCase()) || s.nis.includes(search))
+    );
+
+    if (sortConfig.key && sortConfig.direction) {
+      base.sort((a, b) => {
+        let valA: any, valB: any;
+        
+        if (sortConfig.key === 'name') {
+          valA = a.name.toLowerCase();
+          valB = b.name.toLowerCase();
+        } else if (sortConfig.key === 'avg') {
+          const wA = store.weeklyScores.find(x => x.studentId === a.id && x.classId === classId && x.semester === semester) || {} as any;
+          const wB = store.weeklyScores.find(x => x.studentId === b.id && x.classId === classId && x.semester === semester) || {} as any;
+          
+          const getAvg = (w: any) => {
+            let sum = 0, cnt = 0;
+            for (let i = 1; i <= weeksCount; i++) {
+              const v = w['m' + i];
+              if (v !== '' && v !== undefined && v !== null) { sum += +v; cnt++; }
+            }
+            return cnt > 0 ? sum / cnt : -1;
+          };
+          
+          valA = getAvg(wA);
+          valB = getAvg(wB);
+        }
+
+        if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+    
+    return base;
+  }, [isValidClass, store.students, store.weeklyScores, classId, search, sortConfig, semester, weeksCount]);
+
+  const requestSort = (key: string) => {
+    let direction: 'asc' | 'desc' = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const getSortIcon = (key: string) => {
+    if (sortConfig.key !== key) return <ArrowUpDown size={12} className="text-gray-300" />;
+    return sortConfig.direction === 'asc' ? <ChevronUp size={12} className="text-primary-500" /> : <ChevronDown size={12} className="text-primary-500" />;
+  };
 
   const handleWeekChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const val = parseInt(e.target.value);
@@ -224,13 +272,21 @@ export function WeeklyScores() {
           <p className="p-6 text-center text-gray-400 text-sm">Belum ada siswa di kelas ini</p>
         ) : (
           <table className="w-full text-sm">
-            <thead className="sticky top-0 bg-gray-50 dark:bg-slate-700 z-10">
+            <thead className="sticky top-0 bg-gray-50 dark:bg-slate-700 z-10 shadow-sm">
               <tr>
-                <th className="p-2 text-left min-w-[120px] sticky left-0 bg-gray-50 dark:bg-slate-700 font-semibold text-xs">Nama</th>
+                <th onClick={() => requestSort('name')} className="p-2 text-left min-w-[120px] sticky left-0 bg-gray-50 dark:bg-slate-700 font-semibold text-xs cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors group">
+                  <div className="flex items-center gap-1.5">
+                    Nama {getSortIcon('name')}
+                  </div>
+                </th>
                 {Array.from({ length: weeksCount }).map((_, i) => (
                   <th key={i} className="p-1 text-[10px] min-w-[40px] font-medium text-center">M{i + 1}</th>
                 ))}
-                <th className="p-2 min-w-[50px] font-semibold text-[10px] text-center">Rata-rata</th>
+                <th onClick={() => requestSort('avg')} className="p-2 min-w-[60px] font-semibold text-[10px] text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors bg-primary-50/20">
+                  <div className="flex items-center justify-center gap-1.5">
+                    Rata-rata {getSortIcon('avg')}
+                  </div>
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
