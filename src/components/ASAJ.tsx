@@ -12,7 +12,11 @@ export function ASAJ() {
   const kelas6 = filteredClasses.find(c => c.name.includes('6'));
   const classId = kelas6?.id || '';
   const [showImport, setShowImport] = useState(false);
-  const students = store.students.filter(s => s.classId === classId);
+  const [search, setSearch] = useState("");
+  const students = store.students.filter(s => 
+    s.classId === classId && 
+    (!search || s.name.toLowerCase().includes(search.toLowerCase()) || s.nis.includes(search))
+  );
 
   const handleScoreChange = (studentId: string, field: 'pg' | 'essay', val: string) => {
     store.setASAJScores((prev) => {
@@ -160,6 +164,17 @@ export function ASAJ() {
           <Upload size={15} /> Import
         </button>
       </div>
+
+      {classId && (
+        <div className="mb-3">
+          <input 
+            value={search} 
+            onChange={e => setSearch(e.target.value)} 
+            placeholder="Cari nama atau NIS siswa..." 
+            className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-slate-600 dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-primary-500 transition text-sm shadow-sm" 
+          />
+        </div>
+      )}
 
       <div className="mb-4 p-4 bg-blue-50/60 dark:bg-blue-900/10 rounded-xl text-sm dark:text-gray-300 border border-blue-100 dark:border-blue-800/20">
         <p className="font-semibold text-blue-800 dark:text-blue-300 mb-1.5 text-xs">Pedoman Penilaian ASAJ Kelas 6:</p>

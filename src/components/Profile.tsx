@@ -30,7 +30,7 @@ export function Profile() {
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(allData));
       const a = document.createElement('a');
       a.setAttribute("href", dataStr);
-      a.setAttribute("download", `paibp_backup_${new Date().toISOString().split('T')[0]}.json`);
+      a.setAttribute("download", `paibp_backup_${new Date().toISOString().split('T')[0]}.paibp`);
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -47,6 +47,13 @@ export function Profile() {
     reader.onload = (event) => {
       try {
         const data = JSON.parse(event.target?.result as string);
+        
+        // Basic validation: Check if it contains keys starting with paibp_
+        const hasValidKey = Object.keys(data).some(key => key.startsWith('paibp_'));
+        if (!hasValidKey) {
+          throw new Error("Invalid format");
+        }
+
         let restoredCount = 0;
         for (const key in data) {
           if (data[key] !== null) {
@@ -61,7 +68,7 @@ export function Profile() {
           toast.error("File backup kosong atau tidak valid");
         }
       } catch (err) {
-        toast.error("Format file backup tidak valid!");
+        toast.error("Format file backup .paibp tidak valid!");
       }
     };
     reader.readAsText(file);
@@ -115,11 +122,11 @@ export function Profile() {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6">
           <button type="button" onClick={handleBackup} className="flex items-center justify-center gap-2 px-4 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl font-medium text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-700 transition shadow-sm">
-            <Download size={16} className="text-blue-500" /> Download Backup (.json)
+            <Download size={16} className="text-blue-500" /> Download Backup (.paibp)
           </button>
           <label className="flex items-center justify-center gap-2 px-4 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl font-medium text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-700 transition shadow-sm cursor-pointer">
             <Upload size={16} className="text-amber-500" /> Restore Backup
-            <input type="file" accept=".json" onChange={handleRestore} className="hidden" />
+            <input type="file" accept=".paibp" onChange={handleRestore} className="hidden" />
           </label>
         </div>
       </div>

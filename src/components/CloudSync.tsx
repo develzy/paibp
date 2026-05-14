@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Cloud, CloudOff, RefreshCw, CheckCircle2 } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import { toast } from 'react-hot-toast';
+import { getApiUrl } from '@/lib/api';
 
 export default function CloudSync() {
   const store = useStore();
@@ -22,7 +23,7 @@ export default function CloudSync() {
 
       // Save each table to D1
       for (const [key, data] of Object.entries(dataToSync)) {
-        await fetch('/api/sync', {
+        await fetch(getApiUrl('/api/sync'), {
           method: 'POST',
           body: JSON.stringify({ key, data }),
         });

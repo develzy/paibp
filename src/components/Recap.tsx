@@ -8,6 +8,7 @@ import * as XLSX from "xlsx";
 export function Recap() {
   const store = useStore();
   const [classId, setClassId] = useState("");
+  const [search, setSearch] = useState("");
 
   const filteredClasses = store.classes.filter(c => c.year === store.activeYear);
   const isValidClass = filteredClasses.some(c => c.id === classId);
@@ -74,9 +75,12 @@ export function Recap() {
       avgW: avgW?.toFixed(1) || '-',
       sas: sas || '-',
       raport: raport?.toFixed(1) || '-',
-      praktik, asaj, raportNum: raport
+      praktik, asaj, raportNum: raport,
+      nis: s.nis
     };
-  }).sort((a, b) => (b.raportNum || 0) - (a.raportNum || 0));
+  }).filter(r => 
+    !search || r.name.toLowerCase().includes(search.toLowerCase()) || r.nis.includes(search)
+  ).sort((a, b) => (b.raportNum || 0) - (a.raportNum || 0));
 
   const exportRecap = () => {
     if (!classId) return alert('Pilih kelas terlebih dahulu');
@@ -109,6 +113,17 @@ export function Recap() {
           <Download size={15} /> Export
         </button>
       </div>
+
+      {isValidClass && (
+        <div className="mb-3">
+          <input 
+            value={search} 
+            onChange={e => setSearch(e.target.value)} 
+            placeholder="Cari nama atau NIS siswa..." 
+            className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-slate-600 dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-primary-500 transition text-sm shadow-sm" 
+          />
+        </div>
+      )}
 
       <div className="glass rounded-2xl p-4 mb-4 dark:text-gray-300 shadow-sm">
         <h4 className="font-semibold text-xs text-gray-800 dark:text-white mb-1.5 font-serif">Penjelasan Penilaian:</h4>

@@ -9,10 +9,16 @@ export function Report() {
   const store = useStore();
   const [classId, setClassId] = useState("");
   const [studentId, setStudentId] = useState("");
+  const [search, setSearch] = useState("");
 
   const filteredClasses = store.classes.filter(c => c.year === store.activeYear);
   const isValidClass = filteredClasses.some(c => c.id === classId);
-  const students = isValidClass ? store.students.filter(s => s.classId === classId) : [];
+  const students = isValidClass 
+    ? store.students.filter(s => 
+        s.classId === classId && 
+        (!search || s.name.toLowerCase().includes(search.toLowerCase()) || s.nis.includes(search))
+      ) 
+    : [];
   const s = store.students.find(x => x.id === studentId);
   const cls = store.classes.find(c => c.id === classId);
   const profile = getProfile();
@@ -165,11 +171,21 @@ export function Report() {
   return (
     <div className="w-full max-w-6xl fade-in">
       <div className="flex flex-wrap gap-2 mb-4 no-print justify-center">
-        <select value={classId} onChange={(e) => { setClassId(e.target.value); setStudentId(""); }} className="px-3 py-2 rounded-xl border border-gray-200 dark:border-slate-600 dark:bg-slate-800 dark:text-white outline-none transition text-sm">
+        <select value={classId} onChange={(e) => { setClassId(e.target.value); setStudentId(""); setSearch(""); }} className="px-3 py-2 rounded-xl border border-gray-200 dark:border-slate-600 dark:bg-slate-800 dark:text-white outline-none transition text-sm">
           <option value="">Pilih Kelas</option>
           {filteredClasses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
         </select>
-        <select value={studentId} onChange={(e) => setStudentId(e.target.value)} className="px-3 py-2 rounded-xl border border-gray-200 dark:border-slate-600 dark:bg-slate-800 dark:text-white outline-none transition text-sm">
+        
+        {isValidClass && (
+          <input 
+            value={search} 
+            onChange={e => setSearch(e.target.value)} 
+            placeholder="Cari nama/NIS..." 
+            className="px-3 py-2 rounded-xl border border-gray-200 dark:border-slate-600 dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-primary-500 transition text-sm w-32" 
+          />
+        )}
+
+        <select value={studentId} onChange={(e) => setStudentId(e.target.value)} className="px-3 py-2 rounded-xl border border-gray-200 dark:border-slate-600 dark:bg-slate-800 dark:text-white outline-none transition text-sm max-w-[200px]">
           <option value="">Pilih Siswa</option>
           {students.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
         </select>

@@ -10,10 +10,16 @@ export function SASScores() {
   const store = useStore();
   const [classId, setClassId] = useState("");
   const [showImport, setShowImport] = useState(false);
+  const [search, setSearch] = useState("");
 
   const filteredClasses = store.classes.filter(c => c.year === store.activeYear);
   const isValidClass = filteredClasses.some(c => c.id === classId);
-  const students = isValidClass ? store.students.filter(s => s.classId === classId) : [];
+  const students = isValidClass 
+    ? store.students.filter(s => 
+        s.classId === classId && 
+        (!search || s.name.toLowerCase().includes(search.toLowerCase()) || s.nis.includes(search))
+      ) 
+    : [];
 
   const getWeeklyAvg = (studentId: string, clsId: string) => {
     const sems = store.weeklyScores.filter((x) => x.studentId === studentId && x.classId === clsId);
@@ -176,6 +182,17 @@ export function SASScores() {
           <Upload size={15} /> Import
         </button>
       </div>
+
+      {isValidClass && (
+        <div className="mb-3">
+          <input 
+            value={search} 
+            onChange={e => setSearch(e.target.value)} 
+            placeholder="Cari nama atau NIS siswa..." 
+            className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-slate-600 dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-primary-500 transition text-sm shadow-sm" 
+          />
+        </div>
+      )}
 
       <div className="glass rounded-2xl overflow-x-auto overflow-y-auto scrollbar-hide shadow-sm w-full">
         {!isValidClass ? (

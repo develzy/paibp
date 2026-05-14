@@ -11,8 +11,13 @@ export function PracticeScores() {
   const filteredClasses = store.classes.filter(c => c.year === store.activeYear);
   const kelas6 = filteredClasses.find(c => c.name.includes('6'));
   const classId = kelas6?.id || '';
-  const students = store.students.filter(s => s.classId === classId);
   const [showImport, setShowImport] = useState(false);
+  const [search, setSearch] = useState("");
+
+  const students = store.students.filter(s => 
+    s.classId === classId && 
+    (!search || s.name.toLowerCase().includes(search.toLowerCase()) || s.nis.includes(search))
+  );
 
   const handleScoreChange = (studentId: string, category: string, val: string) => {
     store.setPracticeScores((prev) => {
@@ -183,6 +188,17 @@ export function PracticeScores() {
           <Upload size={15} /> Import
         </button>
       </div>
+
+      {classId && (
+        <div className="mb-3">
+          <input 
+            value={search} 
+            onChange={e => setSearch(e.target.value)} 
+            placeholder="Cari nama atau NIS siswa..." 
+            className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-slate-600 dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-amber-500 transition text-sm shadow-sm" 
+          />
+        </div>
+      )}
 
       <div className="glass rounded-2xl overflow-hidden shadow-sm w-full">
         {!classId ? (
