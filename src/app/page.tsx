@@ -453,7 +453,7 @@ export default function Home() {
           <div className="order-1 lg:order-2 flex flex-col items-center lg:items-start">
             <div className="glass relative z-10 rounded-[2.5rem] p-10 w-full max-w-md shadow-2xl border border-white/50 dark:border-slate-700/50">
               <div className="text-center mb-10">
-                <img src="/logo.png" alt="Logo PAI" className="w-24 h-24 mx-auto rounded-3xl shadow-xl mb-6 object-cover bg-white mix-blend-multiply dark:mix-blend-normal dark:p-1" />
+                <img src="./logo.png" alt="Logo PAI" className="w-24 h-24 mx-auto rounded-3xl shadow-xl mb-6 object-cover bg-white mix-blend-multiply dark:mix-blend-normal dark:p-1" />
                 <h1 className="font-bold text-gray-900 dark:text-white text-2xl tracking-tight">
                   Welcome to <span className="bg-gradient-to-r from-primary-600 to-emerald-400 bg-clip-text text-transparent">PAIBP</span>
                 </h1>
@@ -629,7 +629,7 @@ function MainApp({ session, setSession }: { session: any, setSession: any }) {
               <Menu size={20} />
             </button>
             <div className="flex items-center gap-3 group cursor-pointer">
-              <img src="/logo.png" alt="Logo PAI" className="w-10 h-10 rounded-lg shadow-sm transform group-hover:rotate-6 transition-transform object-cover bg-white mix-blend-multiply dark:mix-blend-normal dark:border dark:border-slate-700" />
+              <img src="./logo.png" alt="Logo PAI" className="w-10 h-10 rounded-lg shadow-sm transform group-hover:rotate-6 transition-transform object-cover bg-white mix-blend-multiply dark:mix-blend-normal dark:border dark:border-slate-700" />
               <div className="hidden sm:block">
                 <h1 className="font-bold text-gray-900 dark:text-white text-base tracking-tight leading-tight">
                   <span className="bg-gradient-to-r from-primary-600 to-emerald-400 bg-clip-text text-transparent">PAIBP</span> Assessment
