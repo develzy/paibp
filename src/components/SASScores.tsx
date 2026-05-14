@@ -266,7 +266,7 @@ export function SASScores() {
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
               {students.map(s => {
-                const sc = store.sasScores.find(x => x.studentId === s.id && x.classId === classId) || { score: '' };
+                const sc = store.sasScores.find(x => x.studentId === s.id && x.classId === classId) || { pg: '', isian: '', uraian: '', score: '' };
                 const avgW = getWeeklyAvg(s.id, classId);
                 const raport = avgW !== null && sc.score !== '' && sc.score !== undefined ? ((avgW + +sc.score) / 2).toFixed(1) : '-';
                 const pred = raport !== '-' ? getPred(+raport) : '-';
