@@ -247,8 +247,8 @@ export function Report() {
       y += 8;
       doc.setTextColor(100, 116, 139);
       doc.setFontSize(10);
-      doc.setFont("helvetica", "normal");
-      doc.text("DINAS PENDIDIKAN DAN KEBUDAYAAN KABUPATEN BANYUMAS", 105, y, { align: "center" });
+      doc.setFont("helvetica", "bold");
+      doc.text("PAIBP Assessment Smart System v4.0", 105, y, { align: "center" });
       
       y += 5;
       doc.setDrawColor(226, 232, 240);
@@ -357,11 +357,18 @@ export function Report() {
     if (window.jspdf) {
       runExport();
     } else {
+      const toastId = toast.loading('Menyiapkan mesin PDF...');
       const script = document.createElement('script');
       script.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
-      script.onload = runExport;
+      script.onload = () => {
+        toast.dismiss(toastId);
+        runExport();
+      };
+      script.onerror = () => {
+        toast.dismiss(toastId);
+        toast.error('Gagal memuat mesin PDF');
+      };
       document.head.appendChild(script);
-      toast.loading('Menyiapkan mesin PDF...');
     }
   };
 
@@ -379,7 +386,7 @@ export function Report() {
         <div className="relative z-10">
           <div className="text-center border-b-2 border-double border-slate-200 dark:border-slate-700 pb-6 mb-8">
             <h1 className="text-3xl font-serif font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-1">SDN KALISALAK 01</h1>
-            <p className="text-[10px] uppercase tracking-[3px] text-slate-500 dark:text-gray-400 font-bold">Dinas Pendidikan dan Kebudayaan Kabupaten Banyumas</p>
+            <p className="text-[10px] uppercase tracking-[3px] text-slate-500 dark:text-gray-400 font-bold">PAIBP Assessment Smart System v4.0</p>
           </div>
 
           <div className="text-center mb-8">
