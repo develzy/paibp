@@ -7,6 +7,7 @@ import * as XLSX from "xlsx";
 
 export function Recap() {
   const store = useStore();
+  const [classId, setClassId] = useState("");
   const [search, setSearch] = useState("");
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' | null }>({ key: 'name', direction: 'asc' });
 
