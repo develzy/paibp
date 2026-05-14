@@ -289,6 +289,7 @@ export function Students() {
       <div className="mt-2 text-xs text-gray-400 dark:text-gray-500">
         Menampilkan {filtered.length} dari {store.students.length} siswa
       </div>
+      </div>
       <ConfirmModal 
         isOpen={!!deleteData}
         onClose={() => setDeleteData(null)}
