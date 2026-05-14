@@ -5,7 +5,7 @@ import { getCurrentAcademicYear } from '@/lib/data';
 export interface ClassData { id: string; name: string; year: string; }
 export interface StudentData { id: string; nis: string; nisn?: string; name: string; classId: string; }
 export interface WeeklyScore { studentId: string; classId: string; semester: number; weeks: number; [key: string]: any; }
-export interface SASScore { studentId: string; classId: string; score: number | string; }
+export interface SASScore { studentId: string; classId: string; pg?: number | string; isian?: number | string; uraian?: number | string; score: number | string; }
 export interface PracticeScore { studentId: string; classId: string; wudhu: any; quran: any; sholat: any; tayamum: any; }
 export interface ASAJScore { studentId: string; pg: number | string; essay: number | string; }
 

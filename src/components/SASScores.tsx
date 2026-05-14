@@ -1,7 +1,7 @@
 "use client";
 
 import { useStore } from "@/store/useStore";
-import { Download, Upload, X, FileSpreadsheet } from "lucide-react";
+import { Download, Upload, X, FileSpreadsheet, Scale } from "lucide-react";
 import { useState } from "react";
 import * as XLSX from "xlsx";
 import { toast } from "react-hot-toast";
@@ -40,18 +40,33 @@ export function SASScores() {
 
   const getPred = (v: number) => (v >= 90 ? 'A' : v >= 80 ? 'B' : v >= 75 ? 'C' : 'D');
 
-  const handleScoreChange = (studentId: string, val: string) => {
+  const handleScoreChange = (studentId: string, field: 'pg' | 'isian' | 'uraian', val: string) => {
     store.setSASScores((prev) => {
       let exists = false;
       const next = prev.map(s => {
         if (s.studentId === studentId && s.classId === classId) {
           exists = true;
-          return { ...s, score: val ? Number(val) : '' };
+          const updated = { ...s, [field]: val ? Number(val) : 0 };
+          // Calculate Total & NA on the fly
+          const pg = Number(updated.pg || 0);
+          const isian = Number(updated.isian || 0);
+          const uraian = Number(updated.uraian || 0);
+          const total = pg + isian + uraian;
+          updated.score = ((total / 50) * 100).toFixed(1);
+          return updated;
         }
         return s;
       });
       if (!exists) {
-        next.push({ studentId, classId, score: val ? Number(val) : '' });
+        const pg = field === 'pg' ? Number(val) : 0;
+        const isian = field === 'isian' ? Number(val) : 0;
+        const uraian = field === 'uraian' ? Number(val) : 0;
+        const total = pg + isian + uraian;
+        next.push({ 
+          studentId, classId, 
+          pg, isian, uraian,
+          score: ((total / 50) * 100).toFixed(1) 
+        });
       }
       return next;
     });
@@ -240,7 +255,10 @@ export function SASScores() {
             <thead className="bg-gray-50 dark:bg-slate-700">
               <tr>
                 <th className="p-3 text-left font-semibold text-xs">Nama</th>
-                <th className="p-3 font-semibold text-xs text-center">Nilai SAS</th>
+                <th className="p-3 font-semibold text-xs text-center bg-blue-50/30 dark:bg-blue-900/10">PG (0-15)</th>
+                <th className="p-3 font-semibold text-xs text-center bg-blue-50/30 dark:bg-blue-900/10">Isian (0-20)</th>
+                <th className="p-3 font-semibold text-xs text-center bg-blue-50/30 dark:bg-blue-900/10">Uraian (0-15)</th>
+                <th className="p-3 font-semibold text-xs text-center">NA SAS</th>
                 <th className="p-3 font-semibold text-xs text-center">Nilai Raport</th>
                 <th className="p-3 font-semibold text-xs text-center">Predikat</th>
                 <th className="p-3 font-semibold text-xs text-center">Status</th>
@@ -259,12 +277,29 @@ export function SASScores() {
                     <td className="p-3 font-medium text-sm">{s.name}</td>
                     <td className="p-3 text-center">
                       <input 
-                        type="number" min="0" max="100" 
-                        value={sc.score} 
-                        onChange={(e) => handleScoreChange(s.id, e.target.value)} 
-                        className="score-input rounded-lg border border-gray-200 dark:border-slate-600 dark:bg-slate-800 dark:text-white py-1 outline-none focus:ring-2 focus:ring-primary-500" 
+                        type="number" min="0" max="15" 
+                        value={sc.pg || ''} 
+                        onChange={(e) => handleScoreChange(s.id, 'pg', e.target.value)} 
+                        className="w-16 px-2 py-1 text-center rounded-lg border border-gray-200 dark:border-slate-600 dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-primary-500" 
                       />
                     </td>
+                    <td className="p-3 text-center">
+                      <input 
+                        type="number" min="0" max="20" 
+                        value={sc.isian || ''} 
+                        onChange={(e) => handleScoreChange(s.id, 'isian', e.target.value)} 
+                        className="w-16 px-2 py-1 text-center rounded-lg border border-gray-200 dark:border-slate-600 dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-primary-500" 
+                      />
+                    </td>
+                    <td className="p-3 text-center">
+                      <input 
+                        type="number" min="0" max="15" 
+                        value={sc.uraian || ''} 
+                        onChange={(e) => handleScoreChange(s.id, 'uraian', e.target.value)} 
+                        className="w-16 px-2 py-1 text-center rounded-lg border border-gray-200 dark:border-slate-600 dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-primary-500" 
+                      />
+                    </td>
+                    <td className="p-3 text-center font-bold text-primary-600 dark:text-primary-400">{sc.score || '0'}</td>
                     <td className="p-3 text-center font-bold">{raport}</td>
                     <td className="p-3 text-center">{pred}</td>
                     <td className="p-3 text-center">{status}</td>
