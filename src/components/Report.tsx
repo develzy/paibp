@@ -98,15 +98,24 @@ export function Report() {
     
     const curAvg = semester === 1 ? avgSem1 : avgSem2;
 
-    let desc = '';
-    if (raport !== null) {
-      if (+raport >= 90) desc = `${student?.name} menunjukkan penguasaan yang sangat baik dalam pembelajaran PAIBP.`;
-      else if (+raport >= 80) desc = `${student?.name} menunjukkan penguasaan yang baik dalam pembelajaran PAIBP.`;
-      else if (+raport >= 75) desc = `${student?.name} menunjukkan penguasaan yang cukup. Perlu peningkatan.`;
-      else desc = `${student?.name} perlu bimbingan lebih lanjut dalam pembelajaran PAIBP.`;
+    // Auto-Description Logic
+    let autoDesc = "";
+    if (raport === null) {
+      autoDesc = "Data nilai belum lengkap untuk dilakukan evaluasi capaian kompetensi.";
+    } else if (raport >= 90) {
+      autoDesc = `Ananda ${student?.name} menunjukkan penguasaan kompetensi yang sangat baik dalam memahami materi PAI dan Budi Pekerti serta mampu mempraktikkan ajaran agama dengan sangat istiqomah di lingkungan sekolah.`;
+    } else if (raport >= 80) {
+      autoDesc = `Ananda ${student?.name} menunjukkan penguasaan kompetensi yang baik dalam memahami materi PAI dan Budi Pekerti serta cukup aktif dalam kegiatan praktik keagamaan dan pembiasaan akhlak mulia.`;
+    } else if (raport >= 75) {
+      autoDesc = `Ananda ${student?.name} menunjukkan penguasaan kompetensi yang cukup dalam memahami materi PAI dan Budi Pekerti, namun memerlukan sedikit bimbingan dalam konsistensi praktik ibadah harian.`;
+    } else {
+      autoDesc = `Ananda ${student?.name} memerlukan bimbingan lebih lanjut dalam memahami materi dasar PAI dan Budi Pekerti serta perlu penguatan intensif dalam pembiasaan praktik ibadah dan akhlak harian.`;
     }
 
-    return { avgW, sas, raport, praktik, asaj, isK6, avgSem1, avgSem2, desc };
+    return {
+      avgSem1, avgSem2, avgW, sas, raport, praktik, asaj, isK6,
+      desc: autoDesc
+    };
   };
 
   const exportReportClass = () => {
