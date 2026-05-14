@@ -218,34 +218,52 @@ export function Report() {
   };
 
   const exportSingleReport = () => {
-    const element = document.getElementById('report-card-capture');
-    if (!element) return toast.error('Gagal menemukan data raport');
-    
     const st = store.students.find(x => x.id === studentId);
-    
-    // Load html2pdf dynamically if not exists
+    if (!st || !cls) return toast.error('Pilih siswa dan kelas terlebih dahulu');
+
+    const element = document.getElementById('report-card-capture');
+    if (!element) return toast.error('Raport belum siap. Silakan pilih siswa terlebih dahulu.');
+
     const runExport = () => {
+      // @ts-ignore
+      const h2p = window.html2pdf;
+      if (!h2p) return toast.error('Mesin PDF gagal dimuat. Coba lagi dalam beberapa saat.');
+
       const opt = {
-        margin: 10,
-        filename: `Raport_${st?.name || 'Siswa'}_${cls?.name || ''}.pdf`,
+        margin: [10, 10, 10, 10],
+        filename: `Raport_${st.name}_${cls.name}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        html2canvas: { 
+          scale: 3, // High quality
+          useCORS: true,
+          letterRendering: true,
+          logging: false
+        },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
       };
       
-      // @ts-ignore
-      window.html2pdf().set(opt).from(element).save();
+      toast.promise(
+        h2p().set(opt).from(element).save(),
+        {
+          loading: 'Sedang memproses PDF...',
+          success: 'Raport berhasil diunduh!',
+          error: 'Gagal membuat PDF. Coba gunakan fitur Print.',
+        }
+      );
     };
 
+    // Load library dynamically from a different reliable CDN
     // @ts-ignore
     if (window.html2pdf) {
       runExport();
     } else {
       const script = document.createElement('script');
-      script.src = "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js";
+      script.src = "https://raw.githack.com/eKoopmans/html2pdf.js/master/dist/html2pdf.bundle.min.js";
+      script.async = true;
       script.onload = runExport;
+      script.onerror = () => toast.error('Gagal mengunduh mesin PDF. Periksa koneksi internet Anda.');
       document.head.appendChild(script);
-      toast.success('Menyiapkan mesin PDF...');
     }
   };
 
