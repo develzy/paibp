@@ -127,6 +127,26 @@ export function Report() {
     URL.revokeObjectURL(url);
   };
 
+  const exportSingleReport = () => {
+    if (!studentId || !cls) return toast.error('Pilih siswa terlebih dahulu');
+    const st = store.students.find(x => x.id === studentId);
+    if (!st) return;
+    const data = getReportData(st.id);
+    
+    let htmlContent = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{font-family:'Segoe UI',Arial,sans-serif;margin:0;padding:20px;background:#f5f5f5}.page{max-width:800px;margin:20px auto;background:white;border:1px solid #e0e0e0;padding:30px;border-radius:6px}.header{text-align:center;margin-bottom:25px;border-bottom:2px solid #059669;padding-bottom:15px}.header h2{margin:0;color:#111;font-size:18px}.header p{margin:3px 0;color:#888;font-size:11px}.info{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;font-size:12px}.info p{margin:2px 0}.info strong{color:#111}table{width:100%;border-collapse:collapse;margin-bottom:15px}th{padding:8px;text-align:left;font-size:11px;border-bottom:2px solid #059669}td{padding:6px;border-bottom:1px solid #eee;font-size:11px}.highlight{background:#f0fdf4;font-weight:bold}.status{margin:12px 0;padding:10px;background:#f9f9f9;border-left:3px solid #059669;border-radius:3px;font-size:11px}.footer{text-align:right;margin-top:25px;font-size:11px}.signature{margin-top:35px;font-weight:bold}</style></head><body>`;
+    
+    htmlContent += `<div class="page"><div class="header"><h2>RAPORT DIGITAL PAIBP</h2><p>${profile.school || 'Sekolah'} — ${cls?.year || ''} (Semester ${semester})</p></div><div class="info"><p>Nama: <strong>${st.name}</strong></p><p>NIS: <strong>${st.nis}</strong></p><p>Kelas: <strong>${cls?.name}</strong></p></div><table><thead><tr><th>Komponen</th><th>Nilai</th><th>Predikat</th></tr></thead><tbody><tr><td>Rata-rata Semester 1</td><td>${data.avgSem1}</td><td>${data.avgSem1 !== '-' ? getPred(+data.avgSem1) : '-'}</td></tr><tr><td>Rata-rata Semester 2</td><td>${data.avgSem2}</td><td>${data.avgSem2 !== '-' ? getPred(+data.avgSem2) : '-'}</td></tr><tr><td>Mingguan (Sem ${semester})</td><td>${data.avgW?.toFixed(1) || '-'}</td><td>${data.avgW ? getPred(data.avgW) : '-'}</td></tr><tr><td>SAS ${semester}</td><td>${data.sas || '-'}</td><td>${data.sas ? getPred(+data.sas) : '-'}</td></tr><tr class="highlight"><td>Raport Sem ${semester}</td><td>${data.raport?.toFixed(1) || '-'}</td><td>${data.raport ? getPred(+data.raport) : '-'}</td></tr><tr><td>Praktik</td><td>${data.praktik}</td><td>${data.praktik !== '-' ? getPred(+data.praktik) : '-'}</td></tr>${data.isK6 ? `<tr><td>ASAJ</td><td>${data.asaj}</td><td>${data.asaj !== '-' ? getPred(+data.asaj) : '-'}</td></tr>` : ''}</tbody></table><div class="status"><p><strong>${data.raport ? (+data.raport >= 75 ? 'TUNTAS' : 'BELUM TUNTAS') : '-'}</strong></p><p>${data.desc}</p></div><div class="footer"><p>Guru PAIBP,</p><div class="signature">${profile.name}</div><p>${profile.nip ? 'NIP: ' + profile.nip : ''}</p></div></div>`;
+    htmlContent += `</body></html>`;
+    
+    const blob = new Blob([htmlContent], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `raport_${st.name}_sem${semester}.html`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const renderCard = () => {
     if (!s || !cls) return null;
     const data = getReportData(s.id);
@@ -201,7 +221,7 @@ export function Report() {
           <option value="">Pilih Siswa</option>
           {students.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
         </select>
-        <button onClick={() => setAlertData({ title: 'Informasi Export', message: 'Gunakan fitur "Export Kelas" untuk mengunduh semua raport dalam format HTML profesional, atau gunakan fitur "Print" untuk mencetak langsung ke PDF.' })} className="px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-medium flex items-center gap-1.5 shadow-sm transition text-sm">
+        <button onClick={exportSingleReport} className="px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-medium flex items-center gap-1.5 shadow-sm transition text-sm">
           <Download size={15} /> Export
         </button>
         <button onClick={exportReportClass} className="px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-medium flex items-center gap-1.5 shadow-sm transition text-sm">

@@ -622,6 +622,29 @@ function MainApp({ session, setSession }: { session: any, setSession: any }) {
 
   return (
     <div className="flex flex-col min-h-screen w-full bg-slate-50 dark:bg-slate-950 transition-colors font-sans">
+      <style jsx global>{`
+        @media print {
+          .no-print, header, aside, .dropdown-menu, button, select, input {
+            display: none !important;
+          }
+          main {
+            margin-left: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+          }
+          .lg\\:ml-64 {
+            margin-left: 0 !important;
+          }
+          .bg-slate-50, .dark\\:bg-slate-950 {
+            background: white !important;
+          }
+          .glass {
+            box-shadow: none !important;
+            border: none !important;
+            background: white !important;
+          }
+        }
+      `}</style>
       <header className="sticky top-0 z-40 bg-white/70 dark:bg-slate-900/70 backdrop-blur-2xl border-b border-gray-200/50 dark:border-slate-800/50 w-full shadow-[0_4px_30px_rgba(0,0,0,0.02)]">
         <div className="flex items-center justify-between px-4 lg:px-8 py-3.5 w-full max-w-screen-2xl mx-auto">
           <div className="flex items-center gap-4">
