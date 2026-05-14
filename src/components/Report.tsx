@@ -205,11 +205,15 @@ export function Report() {
     if (printWindow) {
       printWindow.document.write(htmlContent);
       printWindow.document.close();
-      printWindow.focus();
-      setTimeout(() => {
-        printWindow.print();
-        printWindow.close();
-      }, 500);
+      
+      // Wait for assets to load then trigger print
+      printWindow.onload = function() {
+        printWindow.focus();
+        setTimeout(() => {
+          printWindow.print();
+          // We don't close immediately to let the user finish the save dialog
+        }, 300);
+      };
     }
   };
 
