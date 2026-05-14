@@ -184,14 +184,50 @@ export function SASScores() {
       </div>
 
       {isValidClass && (
-        <div className="mb-3">
-          <input 
-            value={search} 
-            onChange={e => setSearch(e.target.value)} 
-            placeholder="Cari nama atau NIS siswa..." 
-            className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-slate-600 dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-primary-500 transition text-sm shadow-sm" 
-          />
-        </div>
+        <>
+          <div className="mb-3">
+            <input 
+              value={search} 
+              onChange={e => setSearch(e.target.value)} 
+              placeholder="Cari nama atau NIS siswa..." 
+              className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-slate-600 dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-primary-500 transition text-sm shadow-sm" 
+            />
+          </div>
+
+          <div className="mb-4 p-4 bg-primary-50/50 dark:bg-primary-900/10 border border-primary-100 dark:border-primary-800/30 rounded-2xl">
+            <h4 className="text-xs font-bold text-primary-800 dark:text-primary-300 mb-2 flex items-center gap-1.5 uppercase tracking-wider">
+              <Scale size={14} /> Pedoman Penilaian SAS:
+            </h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="p-2 rounded-lg bg-white/50 dark:bg-slate-800/50 border border-primary-100/50 dark:border-primary-800/20">
+                <p className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">I. Pilihan Ganda</p>
+                <p className="text-xs font-bold text-gray-900 dark:text-white">15 Soal &times; 1 = 15</p>
+              </div>
+              <div className="p-2 rounded-lg bg-white/50 dark:bg-slate-800/50 border border-primary-100/50 dark:border-primary-800/20">
+                <p className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">II. Isian Singkat</p>
+                <p className="text-xs font-bold text-gray-900 dark:text-white">10 Soal &times; 2 = 20</p>
+              </div>
+              <div className="p-2 rounded-lg bg-white/50 dark:bg-slate-800/50 border border-primary-100/50 dark:border-primary-800/20">
+                <p className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">III. Uraian</p>
+                <p className="text-xs font-bold text-gray-900 dark:text-white">5 Soal &times; 3 = 15</p>
+              </div>
+              <div className="p-2 rounded-lg bg-primary-600 text-white shadow-md shadow-primary-500/20">
+                <p className="text-[10px] font-bold text-primary-100 uppercase mb-1">Skor Maksimal</p>
+                <p className="text-sm font-black">50</p>
+              </div>
+            </div>
+            <div className="mt-3 pt-3 border-t border-primary-100 dark:border-primary-800/30 flex flex-wrap items-center gap-x-6 gap-y-2">
+              <div className="flex items-center gap-2">
+                <div className="px-2 py-0.5 bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 rounded text-[10px] font-bold">RUMUS NA</div>
+                <p className="text-xs font-medium text-gray-700 dark:text-gray-300 italic">NA = (Jumlah Skor / 50) &times; 100</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 rounded text-[10px] font-bold">CONTOH</div>
+                <p className="text-xs font-medium text-gray-700 dark:text-gray-300">Skor 42 &rarr; (42 / 50) &times; 100 = <span className="font-bold text-emerald-600 dark:text-emerald-400">84</span></p>
+              </div>
+            </div>
+          </div>
+        </>
       )}
 
       <div className="glass rounded-2xl overflow-x-auto overflow-y-auto scrollbar-hide shadow-sm w-full">
