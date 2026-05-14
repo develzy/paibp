@@ -218,10 +218,151 @@ export function Report() {
   };
 
   const exportSingleReport = () => {
-    // Reverting to the most stable method: Print-to-PDF
-    // This is the only way to get high-quality text-based PDFs in the browser
-    // without using heavy libraries that cause the browser to hang.
-    window.print();
+    const st = store.students.find(x => x.id === studentId);
+    if (!st || !cls) return toast.error('Pilih siswa dan kelas terlebih dahulu');
+    const data = getReportData(st.id);
+
+    const runExport = () => {
+      // @ts-ignore
+      const { jsPDF } = window.jspdf;
+      if (!jsPDF) return toast.error('Gagal memuat mesin PDF.');
+
+      const doc = new jsPDF();
+      const margin = 20;
+      let y = margin;
+
+      // Watermark
+      doc.setTextColor(240, 240, 240);
+      doc.setFontSize(30);
+      doc.setFont("helvetica", "bold");
+      doc.text("Aplikasi PAIBP Assessment", 105, 150, { align: "center", angle: 45 });
+      doc.text("Smart System v4.0", 105, 170, { align: "center", angle: 45 });
+
+      // Header
+      doc.setTextColor(6, 78, 59);
+      doc.setFontSize(22);
+      doc.setFont("serif", "bold");
+      doc.text("SDN KALISALAK 01", 105, y, { align: "center" });
+      
+      y += 8;
+      doc.setTextColor(100, 116, 139);
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      doc.text("DINAS PENDIDIKAN DAN KEBUDAYAAN KABUPATEN BANYUMAS", 105, y, { align: "center" });
+      
+      y += 5;
+      doc.setDrawColor(226, 232, 240);
+      doc.setLineWidth(0.5);
+      doc.line(margin, y, 210 - margin, y);
+      doc.line(margin, y + 1, 210 - margin, y + 1);
+
+      // Title
+      y += 15;
+      doc.setTextColor(15, 23, 42);
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "bold");
+      doc.text("LAPORAN HASIL BELAJAR PESERTA DIDIK", 105, y, { align: "center" });
+      doc.line(65, y + 1, 145, y + 1);
+
+      // Student Info
+      y += 15;
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      doc.text(`Nama Siswa : ${st.name}`, margin, y);
+      doc.text(`Kelas : ${cls.name}`, 140, y);
+      y += 6;
+      doc.text(`NIS / NISN  : ${st.nis} / ${st.nisn || '-'}`, margin, y);
+      doc.text(`Semester : ${semester} (${semester === 1 ? 'Ganjil' : 'Genap'})`, 140, y);
+      y += 6;
+      doc.text(`Tahun Ajaran : ${cls.year}`, 140, y);
+
+      // Table Header
+      y += 10;
+      doc.setFillColor(248, 250, 252);
+      doc.rect(margin, y, 170, 10, 'F');
+      doc.setDrawColor(203, 213, 225);
+      doc.rect(margin, y, 170, 10);
+      doc.setFont("helvetica", "bold");
+      doc.text("NO", margin + 5, y + 7);
+      doc.text("KOMPONEN PENILAIAN", margin + 20, y + 7);
+      doc.text("NILAI", 155, y + 7, { align: "center" });
+      doc.text("PREDIKAT", 180, y + 7, { align: "center" });
+
+      // Table Body
+      const rows = [
+        ["1", "Rata-rata Nilai Semester 1", data.avgSem1, data.avgSem1 !== '-' ? getPred(+data.avgSem1) : '-'],
+        ["2", "Rata-rata Nilai Semester 2", data.avgSem2, data.avgSem2 !== '-' ? getPred(+data.avgSem2) : '-'],
+        ["3", "Nilai Harian (Mingguan)", data.avgW?.toFixed(1) || '-', data.avgW ? getPred(data.avgW) : '-'],
+        ["4", "Sumatif Akhir Semester (SAS)", data.sas || '-', data.sas ? getPred(+data.sas) : '-'],
+        ["5", "NILAI AKHIR RAPORT", data.raport?.toFixed(1) || '-', data.raport ? getPred(+data.raport) : '-'],
+        ["6", "Penilaian Praktik Keagamaan", data.praktik, data.praktik !== '-' ? getPred(+data.praktik) : '-'],
+      ];
+
+      y += 10;
+      doc.setFont("helvetica", "normal");
+      rows.forEach((row, i) => {
+        if (row[1] === "NILAI AKHIR RAPORT") {
+          doc.setFillColor(240, 253, 244);
+          doc.rect(margin, y, 170, 10, 'F');
+          doc.setFont("helvetica", "bold");
+        } else {
+          doc.setFont("helvetica", "normal");
+        }
+        doc.rect(margin, y, 170, 10);
+        doc.text(row[0], margin + 5, y + 7);
+        doc.text(row[1], margin + 20, y + 7);
+        doc.text(row[2].toString(), 155, y + 7, { align: "center" });
+        doc.text(row[3].toString(), 180, y + 7, { align: "center" });
+        y += 10;
+      });
+
+      // Description
+      y += 5;
+      doc.setFont("helvetica", "bold");
+      doc.text("CAPAIAN KOMPETENSI (DESKRIPSI)", margin, y);
+      y += 5;
+      doc.setFont("helvetica", "italic");
+      const splitDesc = doc.splitTextToSize(`"${data.desc}"`, 170);
+      doc.text(splitDesc, margin, y);
+      y += (splitDesc.length * 5) + 10;
+
+      // Signatures
+      const sigY = y;
+      doc.setFont("helvetica", "normal");
+      doc.text("Orang Tua/Wali,", margin + 5, sigY);
+      doc.text(`Kalisalak, ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}`, 155, sigY, { align: "center" });
+      doc.text("Guru PAIBP", 155, sigY + 5, { align: "center" });
+      
+      doc.text("Mengetahui,", 105, sigY + 5, { align: "center" });
+      doc.text("Kepala Sekolah", 105, sigY + 10, { align: "center" });
+
+      y += 30;
+      doc.setFont("helvetica", "bold");
+      doc.text("___________________", margin + 5, y);
+      doc.text(profile.school_head || '........................', 105, y, { align: "center" });
+      doc.text(profile.name, 155, y, { align: "center" });
+      
+      y += 5;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8);
+      doc.text(`NIP. ${profile.school_head_nip || '........................'}`, 105, y, { align: "center" });
+      doc.text(`NIP. ${profile.nip || '........................'}`, 155, y, { align: "center" });
+
+      doc.save(`Raport_${st.name}_${cls.name}.pdf`);
+      toast.success('Raport berhasil didownload!');
+    };
+
+    // Load library dynamically
+    // @ts-ignore
+    if (window.jspdf) {
+      runExport();
+    } else {
+      const script = document.createElement('script');
+      script.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+      script.onload = runExport;
+      document.head.appendChild(script);
+      toast.loading('Menyiapkan mesin PDF...');
+    }
   };
 
   const renderCard = () => {
