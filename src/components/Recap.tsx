@@ -8,6 +8,7 @@ import * as XLSX from "xlsx";
 export function Recap() {
   const store = useStore();
   const [classId, setClassId] = useState("");
+  const [semester, setSemester] = useState<number>(1);
   const [search, setSearch] = useState("");
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' | null }>({ key: 'name', direction: 'asc' });
 
@@ -17,7 +18,7 @@ export function Recap() {
   const isKelas6 = filteredClasses.find(c => c.id === classId)?.name.includes('6');
 
   const getWeeklyAvg = (studentId: string, clsId: string) => {
-    const sems = store.weeklyScores.filter((x) => x.studentId === studentId && x.classId === clsId);
+    const sems = store.weeklyScores.filter((x) => x.studentId === studentId && x.classId === clsId && x.semester === semester);
     if (!sems.length) return null;
     let totalSum = 0, totalCount = 0;
     sems.forEach((sem) => {
@@ -65,7 +66,7 @@ export function Recap() {
     
     let base = students.map(s => {
       const avgW = getWeeklyAvg(s.id, classId);
-      const sas = store.sasScores.find(x => x.studentId === s.id && x.classId === classId)?.score || '';
+      const sas = store.sasScores.find(x => x.studentId === s.id && x.classId === classId && x.semester === semester)?.score || '';
       const raport = avgW !== null && sas !== '' ? ((avgW + +sas) / 2) : null;
       const pr = store.practiceScores.find(x => x.studentId === s.id && x.classId === classId);
       const praktik = pr ? calcFinalPractice(pr) : '-';
@@ -139,7 +140,7 @@ export function Recap() {
     const ws = XLSX.utils.json_to_sheet(exportData);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Rekap Nilai');
-    XLSX.writeFile(wb, `rekap_nilai_${cls?.name}.xlsx`);
+    XLSX.writeFile(wb, `rekap_nilai_${cls?.name}_sem${semester}.xlsx`);
   };
 
   return (
@@ -149,6 +150,12 @@ export function Recap() {
           <select value={classId} onChange={(e) => setClassId(e.target.value)} className="px-3 py-2 rounded-xl border border-gray-200 dark:border-slate-600 dark:bg-slate-800 dark:text-white outline-none transition text-sm">
             <option value="">Pilih Kelas</option>
             {filteredClasses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+        </div>
+        <div>
+          <select value={semester} onChange={(e) => setSemester(Number(e.target.value))} className="px-3 py-2 rounded-xl border border-gray-200 dark:border-slate-600 dark:bg-slate-800 dark:text-white outline-none transition text-sm">
+            <option value="1">Semester 1</option>
+            <option value="2">Semester 2</option>
           </select>
         </div>
         <button onClick={exportRecap} className="px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-medium flex items-center gap-1.5 shadow-sm transition text-sm">

@@ -1,7 +1,7 @@
 "use client";
 
 import { useStore } from "@/store/useStore";
-import { Download, Upload, X, FileSpreadsheet, ChevronUp, ChevronDown, ArrowUpDown } from "lucide-react";
+import { Download, Upload, X, FileSpreadsheet, ChevronUp, ChevronDown, ArrowUpDown, Trash2 } from "lucide-react";
 import { useState, useMemo } from "react";
 import * as XLSX from "xlsx";
 import { toast } from "react-hot-toast";
@@ -95,6 +95,15 @@ export function WeeklyScores() {
       }
       return next;
     });
+  };
+
+  const deleteScores = () => {
+    if (!classId) return toast.error('Pilih kelas terlebih dahulu');
+    const cls = store.classes.find(c => c.id === classId);
+    if (confirm(`Apakah Anda yakin ingin MENGHAPUS SEMUA NILAI MINGGUAN di ${cls?.name} (Semester ${semester})? Tindakan ini tidak bisa dibatalkan.`)) {
+      store.setWeeklyScores((prev) => prev.filter(w => !(w.classId === classId && w.semester === semester)));
+      toast.success(`Semua nilai mingguan ${cls?.name} Sem ${semester} berhasil dihapus`);
+    }
   };
 
   const exportWeekly = () => {
@@ -251,6 +260,9 @@ export function WeeklyScores() {
         </button>
         <button onClick={() => setShowImport(true)} className="px-3 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-medium flex items-center gap-1.5 shadow-sm transition text-sm">
           <Upload size={15} /> Import
+        </button>
+        <button onClick={deleteScores} className="px-3 py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl font-medium flex items-center gap-1.5 shadow-sm transition text-sm">
+          <Trash2 size={15} /> Hapus Data
         </button>
       </div>
 

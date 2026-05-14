@@ -1,7 +1,7 @@
 "use client";
 
 import { useStore } from "@/store/useStore";
-import { Download, Upload, X, FileSpreadsheet, Scale, ChevronUp, ChevronDown, ArrowUpDown } from "lucide-react";
+import { Download, Upload, X, FileSpreadsheet, Scale, ChevronUp, ChevronDown, ArrowUpDown, Trash2 } from "lucide-react";
 import { useState, useMemo } from "react";
 import * as XLSX from "xlsx";
 import { toast } from "react-hot-toast";
@@ -9,6 +9,7 @@ import { toast } from "react-hot-toast";
 export function SASScores() {
   const store = useStore();
   const [classId, setClassId] = useState("");
+  const [semester, setSemester] = useState<number>(1);
   const [showImport, setShowImport] = useState(false);
   const [search, setSearch] = useState("");
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' | null }>({ key: 'name', direction: 'asc' });
@@ -31,8 +32,8 @@ export function SASScores() {
           valA = a.name.toLowerCase();
           valB = b.name.toLowerCase();
         } else if (sortConfig.key === 'score') {
-          const scA = store.sasScores.find(x => x.studentId === a.id && x.classId === classId)?.score || 0;
-          const scB = store.sasScores.find(x => x.studentId === b.id && x.classId === classId)?.score || 0;
+          const scA = store.sasScores.find(x => x.studentId === a.id && x.classId === classId && x.semester === semester)?.score || 0;
+          const scB = store.sasScores.find(x => x.studentId === b.id && x.classId === classId && x.semester === semester)?.score || 0;
           valA = Number(scA);
           valB = Number(scB);
         }
@@ -44,7 +45,7 @@ export function SASScores() {
     }
     
     return base;
-  }, [isValidClass, store.students, store.sasScores, classId, search, sortConfig]);
+  }, [isValidClass, store.students, store.sasScores, classId, search, sortConfig, semester]);
 
   const requestSort = (key: string) => {
     let direction: 'asc' | 'desc' = 'asc';
@@ -60,17 +61,14 @@ export function SASScores() {
   };
 
   const getWeeklyAvg = (studentId: string, clsId: string) => {
-    const sems = store.weeklyScores.filter((x) => x.studentId === studentId && x.classId === clsId);
+    const sems = store.weeklyScores.filter((x) => x.studentId === studentId && x.classId === clsId && x.semester === semester);
     if (!sems.length) return null;
     let totalSum = 0, totalCount = 0;
     sems.forEach((sem) => {
       const nw = sem.weeks || 20;
       for (let i = 1; i <= nw; i++) {
         const v = sem['m' + i];
-        if (v !== '' && v !== undefined && v !== null) {
-          totalSum += +v;
-          totalCount++;
-        }
+        if (v !== '' && v !== undefined && v !== null) { totalSum += +v; totalCount++; }
       }
     });
     return totalCount > 0 ? totalSum / totalCount : null;
@@ -82,10 +80,9 @@ export function SASScores() {
     store.setSASScores((prev) => {
       let exists = false;
       const next = prev.map(s => {
-        if (s.studentId === studentId && s.classId === classId) {
+        if (s.studentId === studentId && s.classId === classId && s.semester === semester) {
           exists = true;
-          const updated = { ...s, [field]: val ? Number(val) : 0 };
-          // Calculate Total & NA on the fly
+          const updated = { ...s, [field]: val ? Number(val) : '' };
           const pg = Number(updated.pg || 0);
           const isian = Number(updated.isian || 0);
           const uraian = Number(updated.uraian || 0);
@@ -96,94 +93,89 @@ export function SASScores() {
         return s;
       });
       if (!exists) {
-        const pg = field === 'pg' ? Number(val) : 0;
-        const isian = field === 'isian' ? Number(val) : 0;
-        const uraian = field === 'uraian' ? Number(val) : 0;
+        const newItem: any = { studentId, classId, semester, [field]: val ? Number(val) : '', score: '' };
+        const pg = Number(newItem.pg || 0);
+        const isian = Number(newItem.isian || 0);
+        const uraian = Number(newItem.uraian || 0);
         const total = pg + isian + uraian;
-        next.push({ 
-          studentId, classId, 
-          pg, isian, uraian,
-          score: ((total / 50) * 100).toFixed(1) 
-        });
+        newItem.score = ((total / 50) * 100).toFixed(1);
+        next.push(newItem);
       }
       return next;
     });
+  };
+
+  const deleteScores = () => {
+    if (!classId) return toast.error('Pilih kelas terlebih dahulu');
+    const cls = store.classes.find(c => c.id === classId);
+    if (confirm(`Apakah Anda yakin ingin MENGHAPUS SEMUA NILAI SAS di ${cls?.name} (Semester ${semester})?`)) {
+      store.setSASScores((prev) => prev.filter(s => !(s.classId === classId && s.semester === semester)));
+      toast.success(`Semua nilai SAS ${cls?.name} Sem ${semester} berhasil dihapus`);
+    }
   };
 
   const exportSAS = () => {
     if (!classId) return toast.error('Pilih kelas terlebih dahulu');
     const cls = store.classes.find(c => c.id === classId);
     const data = students.map(s => {
-      const sc = store.sasScores.find(x => x.studentId === s.id && x.classId === classId) || { score: '' };
+      const sc = store.sasScores.find(x => x.studentId === s.id && x.classId === classId && x.semester === semester) || {} as any;
       const avgW = getWeeklyAvg(s.id, classId);
       const raport = avgW !== null && sc.score !== '' && sc.score !== undefined ? ((avgW + +sc.score) / 2).toFixed(1) : '-';
       return {
-        'Nama': s.name, 'NIS': s.nis, 'Nilai SAS': sc.score || '-', 'Nilai Raport': raport,
-        'Predikat': raport !== '-' ? getPred(+raport) : '-',
-        'Status': raport !== '-' ? (+raport >= 75 ? 'Tuntas' : 'Belum Tuntas') : '-'
+        'Nama': s.name, 'NIS': s.nis, 'PG': sc.pg || '-', 'Isian': sc.isian || '-', 'Uraian': sc.uraian || '-',
+        'NA SAS': sc.score || '-', 'Mingguan': avgW?.toFixed(1) || '-', 'Raport': raport
       };
     });
-    
     const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Nilai SAS');
-    XLSX.writeFile(wb, `nilai_sas_${cls?.name}.xlsx`);
+    XLSX.writeFile(wb, `nilai_sas_${cls?.name}_sem${semester}.xlsx`);
   };
 
   const downloadTemplate = () => {
     if (!classId) return toast.error('Pilih kelas terlebih dahulu');
     const cls = store.classes.find(c => c.id === classId);
-    const data = students.map(s => ({
-      'Nama': s.name, 'NIS': s.nis, 'Nilai SAS': ''
-    }));
-    
+    const data = students.map(s => ({ 'Nama': s.name, 'NIS': s.nis, 'PG': '', 'Isian': '', 'Uraian': '' }));
     const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Template SAS');
-    XLSX.writeFile(wb, `template_sas_${cls?.name}.xlsx`);
+    XLSX.writeFile(wb, `template_sas_${cls?.name}_sem${semester}.xlsx`);
   };
 
   const importSAS = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!classId) {
-      toast.error('Pilih kelas terlebih dahulu');
-      e.target.value = '';
-      return;
-    }
+    if (!classId) { toast.error('Pilih kelas terlebih dahulu'); e.target.value = ''; return; }
     const file = e.target.files?.[0];
     if (!file) return;
-    
     const reader = new FileReader();
     reader.onload = (evt) => {
       try {
         const wb = XLSX.read(evt.target?.result, { type: 'array' });
         const data = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
-        
         let count = 0;
         store.setSASScores((prev) => {
           let next = [...prev];
           data.forEach((row: any) => {
             const student = students.find(s => s.nis === String(row['NIS'] || '') || s.name === row['Nama']);
             if (student) {
-              const val = row['Nilai SAS'];
-              if (val !== undefined && val !== '-' && val !== '') {
-                const existingIndex = next.findIndex(s => s.studentId === student.id && s.classId === classId);
-                if (existingIndex >= 0) {
-                  next[existingIndex] = { ...next[existingIndex], score: Number(val) };
-                } else {
-                  next.push({ studentId: student.id, classId, score: Number(val) });
-                }
+              const existingIndex = next.findIndex(s => s.studentId === student.id && s.classId === classId && s.semester === semester);
+              let s = existingIndex >= 0 ? { ...next[existingIndex] } : { studentId: student.id, classId, semester, pg: '', isian: '', uraian: '', score: '' } as any;
+              let updated = false;
+              if (row['PG'] !== undefined && row['PG'] !== '-') { s.pg = Number(row['PG']); updated = true; }
+              if (row['Isian'] !== undefined && row['Isian'] !== '-') { s.isian = Number(row['Isian']); updated = true; }
+              if (row['Uraian'] !== undefined && row['Uraian'] !== '-') { s.uraian = Number(row['Uraian']); updated = true; }
+              if (updated) {
+                const total = Number(s.pg || 0) + Number(s.isian || 0) + Number(s.uraian || 0);
+                s.score = ((total / 50) * 100).toFixed(1);
+                if (existingIndex >= 0) next[existingIndex] = s;
+                else next.push(s);
                 count++;
               }
             }
           });
           return next;
         });
-        
         if (count > 0) toast.success(`${count} data nilai SAS berhasil diimport`);
-        else toast.error('Tidak ada data nilai SAS yang valid untuk diimport');
-      } catch (err) {
-        toast.error('Gagal membaca file Excel');
-      }
+      } catch (err) { toast.error('Gagal membaca file Excel'); }
     };
     reader.readAsArrayBuffer(file);
     e.target.value = '';
@@ -224,15 +216,26 @@ export function SASScores() {
 
       <div className="w-full max-w-6xl fade-in">
         <div className="mb-4 flex flex-wrap gap-2 justify-center">
-        <select value={classId} onChange={(e) => setClassId(e.target.value)} className="px-3 py-2 rounded-xl border border-gray-200 dark:border-slate-600 dark:bg-slate-800 dark:text-white outline-none transition text-sm">
-          <option value="">Pilih Kelas</option>
-          {filteredClasses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-        </select>
+        <div>
+          <select value={classId} onChange={(e) => setClassId(e.target.value)} className="px-3 py-2 rounded-xl border border-gray-200 dark:border-slate-600 dark:bg-slate-800 dark:text-white outline-none transition text-sm">
+            <option value="">Pilih Kelas</option>
+            {filteredClasses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+        </div>
+        <div>
+          <select value={semester} onChange={(e) => setSemester(Number(e.target.value))} className="px-3 py-2 rounded-xl border border-gray-200 dark:border-slate-600 dark:bg-slate-800 dark:text-white outline-none transition text-sm">
+            <option value="1">Semester 1</option>
+            <option value="2">Semester 2</option>
+          </select>
+        </div>
         <button onClick={exportSAS} className="px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-medium flex items-center gap-1.5 shadow-sm transition text-sm">
           <Download size={15} /> Export
         </button>
         <button onClick={() => setShowImport(true)} className="px-3 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-medium flex items-center gap-1.5 shadow-sm transition text-sm">
           <Upload size={15} /> Import
+        </button>
+        <button onClick={deleteScores} className="px-3 py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl font-medium flex items-center gap-1.5 shadow-sm transition text-sm">
+          <Trash2 size={15} /> Hapus Data
         </button>
       </div>
 
@@ -312,7 +315,7 @@ export function SASScores() {
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
               {students.map(s => {
-                const sc = store.sasScores.find(x => x.studentId === s.id && x.classId === classId) || { pg: '', isian: '', uraian: '', score: '' };
+                const sc = store.sasScores.find(x => x.studentId === s.id && x.classId === classId && x.semester === semester) || { pg: '', isian: '', uraian: '', score: '' };
                 const avgW = getWeeklyAvg(s.id, classId);
                 const raport = avgW !== null && sc.score !== '' && sc.score !== undefined ? ((avgW + +sc.score) / 2).toFixed(1) : '-';
                 const pred = raport !== '-' ? getPred(+raport) : '-';

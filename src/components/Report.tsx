@@ -8,6 +8,7 @@ import { useState } from "react";
 export function Report() {
   const store = useStore();
   const [classId, setClassId] = useState("");
+  const [semester, setSemester] = useState<number>(1);
   const [studentId, setStudentId] = useState("");
   const [search, setSearch] = useState("");
 
@@ -23,8 +24,8 @@ export function Report() {
   const cls = store.classes.find(c => c.id === classId);
   const profile = getProfile();
 
-  const getWeeklyAvg = (sid: string, cid: string) => {
-    const sems = store.weeklyScores.filter(x => x.studentId === sid && x.classId === cid);
+  const getWeeklyAvg = (sid: string, cid: string, semId?: number) => {
+    const sems = store.weeklyScores.filter(x => x.studentId === sid && x.classId === cid && (semId ? x.semester === semId : x.semester === semester));
     if (!sems.length) return null;
     let sum = 0, count = 0;
     sems.forEach(sem => {
@@ -62,7 +63,7 @@ export function Report() {
   const getReportData = (sid: string) => {
     const student = store.students.find(x => x.id === sid);
     const avgW = getWeeklyAvg(sid, classId);
-    const sas = store.sasScores.find(x => x.studentId === sid && x.classId === classId)?.score || '';
+    const sas = store.sasScores.find(x => x.studentId === sid && x.classId === classId && x.semester === semester)?.score || '';
     const raport = avgW !== null && sas !== '' ? ((avgW + +sas) / 2) : null;
     const pr = store.practiceScores.find(x => x.studentId === sid && x.classId === classId);
     const praktik = pr ? calcFinalPractice(pr) : '-';
@@ -91,6 +92,8 @@ export function Report() {
     
     const avgSem1 = semAvg(sem1);
     const avgSem2 = semAvg(sem2);
+    
+    const curAvg = semester === 1 ? avgSem1 : avgSem2;
 
     let desc = '';
     if (raport !== null) {
@@ -109,7 +112,7 @@ export function Report() {
     
     students.forEach(st => {
       const data = getReportData(st.id);
-      htmlContent += `<div class="page"><p class="logo-text">DEVELZY — Smart Assessment</p><div class="header"><h2>RAPORT DIGITAL PAIBP</h2><p>${profile.school || 'Sekolah'} — ${cls?.year || ''}</p></div><div class="info"><p><span>Nama:</span> <strong>${st.name}</strong></p><p><span>NIS:</span> <strong>${st.nis}</strong></p><p><span>Kelas:</span> <strong>${cls?.name}</strong></p></div><table><thead><tr><th>Komponen</th><th>Nilai</th><th>Predikat</th></tr></thead><tbody><tr><td>Sem 1</td><td>${data.avgSem1}</td><td>${data.avgSem1 !== '-' ? getPred(+data.avgSem1) : '-'}</td></tr><tr><td>Sem 2</td><td>${data.avgSem2}</td><td>${data.avgSem2 !== '-' ? getPred(+data.avgSem2) : '-'}</td></tr><tr><td>Mingguan</td><td>${data.avgW?.toFixed(1) || '-'}</td><td>${data.avgW ? getPred(data.avgW) : '-'}</td></tr><tr><td>SAS</td><td>${data.sas || '-'}</td><td>${data.sas ? getPred(+data.sas) : '-'}</td></tr><tr class="highlight"><td>Raport</td><td>${data.raport?.toFixed(1) || '-'}</td><td>${data.raport ? getPred(+data.raport) : '-'}</td></tr><tr><td>Praktik</td><td>${data.praktik}</td><td>${data.praktik !== '-' ? getPred(+data.praktik) : '-'}</td></tr>${data.isK6 ? `<tr><td>ASAJ</td><td>${data.asaj}</td><td>${data.asaj !== '-' ? getPred(+data.asaj) : '-'}</td></tr>` : ''}</tbody></table><div class="status"><p><strong>${data.raport ? (+data.raport >= 75 ? 'TUNTAS' : 'BELUM TUNTAS') : '-'}</strong></p><p>${data.desc}</p></div><div class="footer"><p>Guru PAIBP,</p><div class="signature">${profile.name}</div><p>${profile.nip ? 'NIP: ' + profile.nip : ''}</p></div></div>`;
+      htmlContent += `<div class="page"><p class="logo-text">DEVELZY — Smart Assessment</p><div class="header"><h2>RAPORT DIGITAL PAIBP</h2><p>${profile.school || 'Sekolah'} — ${cls?.year || ''} (Semester ${semester})</p></div><div class="info"><p><span>Nama:</span> <strong>${st.name}</strong></p><p><span>NIS:</span> <strong>${st.nis}</strong></p><p><span>Kelas:</span> <strong>${cls?.name}</strong></p></div><table><thead><tr><th>Komponen</th><th>Nilai</th><th>Predikat</th></tr></thead><tbody><tr><td>Rata-rata Semester 1</td><td>${data.avgSem1}</td><td>${data.avgSem1 !== '-' ? getPred(+data.avgSem1) : '-'}</td></tr><tr><td>Rata-rata Semester 2</td><td>${data.avgSem2}</td><td>${data.avgSem2 !== '-' ? getPred(+data.avgSem2) : '-'}</td></tr><tr><td>Mingguan (Sem ${semester})</td><td>${data.avgW?.toFixed(1) || '-'}</td><td>${data.avgW ? getPred(data.avgW) : '-'}</td></tr><tr><td>SAS ${semester}</td><td>${data.sas || '-'}</td><td>${data.sas ? getPred(+data.sas) : '-'}</td></tr><tr class="highlight"><td>Raport Sem ${semester}</td><td>${data.raport?.toFixed(1) || '-'}</td><td>${data.raport ? getPred(+data.raport) : '-'}</td></tr><tr><td>Praktik</td><td>${data.praktik}</td><td>${data.praktik !== '-' ? getPred(+data.praktik) : '-'}</td></tr>${data.isK6 ? `<tr><td>ASAJ</td><td>${data.asaj}</td><td>${data.asaj !== '-' ? getPred(+data.asaj) : '-'}</td></tr>` : ''}</tbody></table><div class="status"><p><strong>${data.raport ? (+data.raport >= 75 ? 'TUNTAS' : 'BELUM TUNTAS') : '-'}</strong></p><p>${data.desc}</p></div><div class="footer"><p>Guru PAIBP,</p><div class="signature">${profile.name}</div><p>${profile.nip ? 'NIP: ' + profile.nip : ''}</p></div></div>`;
     });
     
     htmlContent += `</body></html>`;
@@ -146,11 +149,11 @@ export function Report() {
             </tr>
           </thead>
           <tbody className="dark:text-gray-200 text-xs">
-            <tr className="border-t border-gray-100 dark:border-slate-700"><td className="p-2.5">Rata-rata Semester 1</td><td className="p-2.5 text-center">{data.avgSem1}</td><td className="p-2.5 text-center">{data.avgSem1 !== '-' ? getPred(+data.avgSem1) : '-'}</td></tr>
-            <tr className="border-t border-gray-100 dark:border-slate-700"><td className="p-2.5">Rata-rata Semester 2</td><td className="p-2.5 text-center">{data.avgSem2}</td><td className="p-2.5 text-center">{data.avgSem2 !== '-' ? getPred(+data.avgSem2) : '-'}</td></tr>
-            <tr className="border-t border-gray-100 dark:border-slate-700"><td className="p-2.5">Rata-rata Mingguan</td><td className="p-2.5 text-center">{data.avgW?.toFixed(1) || '-'}</td><td className="p-2.5 text-center">{data.avgW ? getPred(data.avgW) : '-'}</td></tr>
-            <tr className="border-t border-gray-100 dark:border-slate-700"><td className="p-2.5">Nilai SAS</td><td className="p-2.5 text-center">{data.sas || '-'}</td><td className="p-2.5 text-center">{data.sas ? getPred(+data.sas) : '-'}</td></tr>
-            <tr className="border-t border-gray-100 dark:border-slate-700 font-bold bg-primary-50/50 dark:bg-primary-900/10"><td className="p-2.5">Nilai Raport</td><td className="p-2.5 text-center">{data.raport?.toFixed(1) || '-'}</td><td className="p-2.5 text-center">{data.raport ? getPred(+data.raport) : '-'}</td></tr>
+            <tr className="border-t border-gray-100 dark:border-slate-700"><td className="p-2.5 text-gray-500">Rata-rata Semester 1</td><td className="p-2.5 text-center">{data.avgSem1}</td><td className="p-2.5 text-center">{data.avgSem1 !== '-' ? getPred(+data.avgSem1) : '-'}</td></tr>
+            <tr className="border-t border-gray-100 dark:border-slate-700"><td className="p-2.5 text-gray-500">Rata-rata Semester 2</td><td className="p-2.5 text-center">{data.avgSem2}</td><td className="p-2.5 text-center">{data.avgSem2 !== '-' ? getPred(+data.avgSem2) : '-'}</td></tr>
+            <tr className="border-t border-gray-100 dark:border-slate-700 font-medium"><td className="p-2.5">Rata-rata Mingguan (Sem {semester})</td><td className="p-2.5 text-center">{data.avgW?.toFixed(1) || '-'}</td><td className="p-2.5 text-center">{data.avgW ? getPred(data.avgW) : '-'}</td></tr>
+            <tr className="border-t border-gray-100 dark:border-slate-700 font-medium"><td className="p-2.5">Nilai SAS {semester}</td><td className="p-2.5 text-center">{data.sas || '-'}</td><td className="p-2.5 text-center">{data.sas ? getPred(+data.sas) : '-'}</td></tr>
+            <tr className="border-t border-gray-100 dark:border-slate-700 font-bold bg-primary-50/50 dark:bg-primary-900/10"><td className="p-2.5">Nilai Raport Sem {semester}</td><td className="p-2.5 text-center">{data.raport?.toFixed(1) || '-'}</td><td className="p-2.5 text-center">{data.raport ? getPred(+data.raport) : '-'}</td></tr>
             <tr className="border-t border-gray-100 dark:border-slate-700"><td className="p-2.5">Nilai Praktik</td><td className="p-2.5 text-center">{data.praktik}</td><td className="p-2.5 text-center">{data.praktik !== '-' ? getPred(+data.praktik) : '-'}</td></tr>
             {data.isK6 && <tr className="border-t border-gray-100 dark:border-slate-700"><td className="p-2.5">Nilai ASAJ</td><td className="p-2.5 text-center">{data.asaj}</td><td className="p-2.5 text-center">{data.asaj !== '-' ? getPred(+data.asaj) : '-'}</td></tr>}
           </tbody>
@@ -175,6 +178,13 @@ export function Report() {
           <option value="">Pilih Kelas</option>
           {filteredClasses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
         </select>
+        
+        <div>
+          <select value={semester} onChange={(e) => setSemester(Number(e.target.value))} className="px-3 py-2 rounded-xl border border-gray-200 dark:border-slate-600 dark:bg-slate-800 dark:text-white outline-none transition text-sm">
+            <option value="1">Semester 1</option>
+            <option value="2">Semester 2</option>
+          </select>
+        </div>
         
         {isValidClass && (
           <input 
