@@ -120,19 +120,96 @@ export function Report() {
 
   const exportReportClass = () => {
     if (!classId) return alert('Pilih kelas terlebih dahulu');
-    let htmlContent = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{font-family:'Segoe UI',Arial,sans-serif;margin:0;padding:20px;background:#f5f5f5}.page{max-width:800px;margin:20px auto;background:white;border:1px solid #e0e0e0;padding:30px;page-break-after:always;border-radius:6px;position:relative;overflow:hidden}.watermark{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-45deg);color:rgba(0,0,0,0.03);font-size:40px;font-weight:900;pointer-events:none;white-space:nowrap}.header{text-align:center;margin-bottom:25px;border-bottom:2px solid #059669;padding-bottom:15px}.header h2{margin:0;color:#111;font-size:18px}.header p{margin:3px 0;color:#888;font-size:11px}.info{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;font-size:12px}.info p{margin:2px 0}.info strong{color:#111}.info span{color:#888}table{width:100%;border-collapse:collapse;margin-bottom:15px}thead{background:#f0fdf4}th{padding:8px;text-align:left;font-weight:600;font-size:11px;border-bottom:2px solid #059669}td{padding:6px;border-bottom:1px solid #eee;font-size:11px}.highlight{background:#f0fdf4;font-weight:bold}.status{margin:12px 0;padding:10px;background:#f9f9f9;border-left:3px solid #059669;border-radius:3px;font-size:11px}.footer{text-align:right;margin-top:25px;font-size:11px}.signature{margin-top:35px;font-weight:bold}.logo-text{font-size:9px;color:#aaa;text-align:center;margin-bottom:10px}@media print{.no-print{display:none}}</style></head><body>`;
+    const cls = store.classes.find(c => c.id === classId);
+    
+    let htmlContent = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Raport Kelas ${cls?.name}</title><style>
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Lora:wght@700&display=swap');
+      body { font-family: 'Inter', sans-serif; margin: 0; padding: 0; background: white; }
+      .page { width: 210mm; min-height: 297mm; padding: 15mm; margin: 0 auto; background: white; position: relative; page-break-after: always; box-sizing: border-box; border-top: 8px solid #059669; }
+      .watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg); color: rgba(0,0,0,0.03); font-size: 35px; font-weight: 900; pointer-events: none; white-space: nowrap; text-align: center; z-index: 0; }
+      .content { position: relative; z-index: 10; }
+      .header { text-align: center; margin-bottom: 25px; border-bottom: 2px double #e2e8f0; padding-bottom: 15px; }
+      .school-name { font-family: 'Lora', serif; font-size: 22px; font-weight: bold; color: #064e3b; margin: 0; text-transform: uppercase; }
+      .school-info { font-size: 10px; color: #64748b; margin: 4px 0 0; text-transform: uppercase; letter-spacing: 1px; }
+      .report-title { font-size: 14px; font-weight: 700; margin: 15px 0; text-decoration: underline; text-underline-offset: 3px; text-align: center; }
+      .student-info { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; font-size: 12px; border: 1px solid #f1f5f9; padding: 12px; border-radius: 8px; background: #f8fafc; }
+      .info-row { display: flex; margin-bottom: 3px; }
+      .info-label { width: 90px; color: #64748b; }
+      .info-value { font-weight: 700; }
+      table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 11px; }
+      th { background: #f8fafc; padding: 8px; text-align: left; border-bottom: 2px solid #e2e8f0; color: #475569; font-weight: 700; }
+      td { padding: 8px; border-bottom: 1px solid #f1f5f9; }
+      .val-cell { font-weight: 700; text-align: center; }
+      .pred-cell { text-align: center; }
+      .highlight-row { background: #f0fdf4; font-weight: bold; }
+      .description-box { margin: 15px 0; border: 1px solid #e2e8f0; border-radius: 6px; overflow: hidden; }
+      .desc-header { background: #f8fafc; padding: 6px 10px; font-weight: 700; font-size: 10px; border-bottom: 1px solid #e2e8f0; }
+      .desc-body { padding: 10px; font-size: 11px; line-height: 1.4; font-style: italic; }
+      .signature-area { display: grid; grid-template-columns: 1fr 1.2fr 1fr; gap: 10px; margin-top: 30px; font-size: 11px; text-align: center; }
+      .sig-box { display: flex; flex-direction: column; justify-content: space-between; min-height: 80px; }
+      .sig-name { font-weight: 700; text-decoration: underline; }
+      @media print { body { background: white; } .no-print { display: none; } }
+    </style></head><body>`;
     
     students.forEach(st => {
       const data = getReportData(st.id);
-      htmlContent += `<div class=\"page\"><div class=\"watermark\">PAIBP ASSESSMENT</div><p class=\"logo-text\">DEVELZY — Smart Assessment</p><div class=\"header\"><h2>RAPORT DIGITAL PAIBP</h2><p>${profile.school || 'Sekolah'} — ${cls?.year || ''} (Semester ${semester})</p></div><div class=\"info\"><p><span>Nama:</span> <strong>${st.name}</strong></p><p><span>NIS:</span> <strong>${st.nis}</strong></p><p><span>Kelas:</span> <strong>${cls?.name}</strong></p></div><table><thead><tr><th>Komponen</th><th>Nilai</th><th>Predikat</th></tr></thead><tbody><tr><td>Rata-rata Semester 1</td><td>${data.avgSem1}</td><td>${data.avgSem1 !== '-' ? getPred(+data.avgSem1) : '-'}</td></tr><tr><td>Rata-rata Semester 2</td><td>${data.avgSem2}</td><td>${data.avgSem2 !== '-' ? getPred(+data.avgSem2) : '-'}</td></tr><tr><td>Mingguan (Sem ${semester})</td><td>${data.avgW?.toFixed(1) || '-'}</td><td>${data.avgW ? getPred(data.avgW) : '-'}</td></tr><tr><td>SAS ${semester}</td><td>${data.sas || '-'}</td><td>${data.sas ? getPred(+data.sas) : '-'}</td></tr><tr class=\"highlight\"><td>Raport Sem ${semester}</td><td>${data.raport?.toFixed(1) || '-'}</td><td>${data.raport ? getPred(+data.raport) : '-'}</td></tr><tr><td>Praktik</td><td>${data.praktik}</td><td>${data.praktik !== '-' ? getPred(+data.praktik) : '-'}</td></tr>${data.isK6 ? `<tr><td>ASAJ</td><td>${data.asaj}</td><td>${data.asaj !== '-' ? getPred(+data.asaj) : '-'}</td></tr>` : ''}</tbody></table><div class=\"status\"><p><strong>${data.raport ? (+data.raport >= 75 ? 'TUNTAS' : 'BELUM TUNTAS') : '-'}</strong></p><p>${data.desc}</p></div><div class=\"footer\"><p>Guru PAIBP,</p><div class=\"signature\">${profile.name}</div><p>${profile.nip ? 'NIP: ' + profile.nip : ''}</p></div></div>`;
+      htmlContent += `
+      <div class="page">
+        <div class="watermark">Aplikasi PAIBP Assessment<br/>Smart System v4.0</div>
+        <div class="content">
+          <div class="header">
+            <h1 class="school-name">SDN KALISALAK 01</h1>
+            <p class="school-info">Dinas Pendidikan dan Kebudayaan Kabupaten Banyumas</p>
+          </div>
+          <div class="report-title">LAPORAN HASIL BELAJAR PESERTA DIDIK</div>
+          <div class="student-info">
+            <div>
+              <div class="info-row"><span class="info-label">Nama Siswa</span><span class="info-value">: ${st.name}</span></div>
+              <div class="info-row"><span class="info-label">NIS / NISN</span><span class="info-value">: ${st.nis} / ${st.nisn || '-'}</span></div>
+            </div>
+            <div>
+              <div class="info-row"><span class="info-label">Kelas</span><span class="info-value">: ${cls?.name}</span></div>
+              <div class="info-row"><span class="info-label">Semester</span><span class="info-value">: ${semester} (${semester === 1 ? 'Ganjil' : 'Genap'})</span></div>
+              <div class="info-row"><span class="info-label">Thn Ajaran</span><span class="info-value">: ${cls?.year}</span></div>
+            </div>
+          </div>
+          <table>
+            <thead>
+              <tr><th style="width:40px;">NO</th><th>ASPEK PENILAIAN</th><th style="text-align:center;">NILAI</th><th style="text-align:center;">PREDIKAT</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>1</td><td>Rata-rata Nilai Semester 1</td><td class="val-cell">${data.avgSem1}</td><td class="pred-cell">${data.avgSem1 !== '-' ? getPred(+data.avgSem1) : '-'}</td></tr>
+              <tr><td>2</td><td>Rata-rata Nilai Semester 2</td><td class="val-cell">${data.avgSem2}</td><td class="pred-cell">${data.avgSem2 !== '-' ? getPred(+data.avgSem2) : '-'}</td></tr>
+              <tr><td>3</td><td>Nilai Harian (Mingguan)</td><td class="val-cell">${data.avgW?.toFixed(1) || '-'}</td><td class="pred-cell">${data.avgW ? getPred(data.avgW) : '-'}</td></tr>
+              <tr><td>4</td><td>Sumatif Akhir Semester (SAS)</td><td class="val-cell">${data.sas || '-'}</td><td class="pred-cell">${data.sas ? getPred(+data.sas) : '-'}</td></tr>
+              <tr class="highlight-row"><td>5</td><td>NILAI AKHIR RAPORT</td><td class="val-cell">${data.raport?.toFixed(1) || '-'}</td><td class="pred-cell">${data.raport ? getPred(+data.raport) : '-'}</td></tr>
+              <tr><td>6</td><td>Penilaian Praktik Keagamaan</td><td class="val-cell">${data.praktik}</td><td class="pred-cell">${data.praktik !== '-' ? getPred(+data.praktik) : '-'}</td></tr>
+              ${data.isK6 ? `<tr><td>7</td><td>Asesmen Sumatif Akhir Jenjang</td><td class="val-cell">${data.asaj}</td><td class="pred-cell">${data.asaj !== '-' ? getPred(+data.asaj) : '-'}</td></tr>` : ''}
+            </tbody>
+          </table>
+          <div class="description-box">
+            <div class="desc-header">CAPAIAN KOMPETENSI (DESKRIPSI)</div>
+            <div class="desc-body">${data.desc}</div>
+          </div>
+          <div class="signature-area">
+            <div class="sig-box"><p>Orang Tua/Wali,</p><div style="margin-top: 35px; border-bottom: 1px solid #111; width: 80%; margin: 0 auto;"></div></div>
+            <div class="sig-box"><p>Mengetahui,<br/>Kepala Sekolah</p><div style="margin-top: 25px;"><p class="sig-name">${profile.school_head || '........................'}</p><p style="font-size:9px;">NIP. ${profile.school_head_nip || '........................'}</p></div></div>
+            <div class="sig-box"><p>Kalisalak, ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</p><p>Guru PAIBP</p><div style="margin-top: 25px;"><p class="sig-name">${profile.name}</p><p style="font-size:9px;">NIP. ${profile.nip || '........................'}</p></div></div>
+          </div>
+        </div>
+      </div>`;
     });
     
     htmlContent += `</body></html>`;
-    const blob = new Blob([htmlContent], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    const win = window.open(url, '_blank');
-    if (win) {
-      win.onload = () => win.print();
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(htmlContent);
+      printWindow.document.close();
+      printWindow.focus();
+      setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+      }, 500);
     }
   };
 
