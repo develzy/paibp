@@ -66,6 +66,19 @@ export function Recap() {
     return (((+a.pg + +a.essay) / 50) * 100).toFixed(1);
   };
 
+  const materialNames = [
+    "Al-Qur'an & Hadis",
+    "Allah Maha Segalanya",
+    "Hidup Damai Memaafkan",
+    "Hukum Halal & Haram",
+    "Jasa Khulafaurrasyidin",
+    "Surah Al-A'la",
+    "Indahnya Ketetapan Allah",
+    "Peduli Lingkungan",
+    "Mengamalkan Puasa Sunah",
+    "Khalifah Usman & Ali"
+  ];
+
   const rows = useMemo(() => {
     return students.map(s => {
       const avgW = getWeeklyAvg(s.id, classId);
@@ -74,6 +87,13 @@ export function Recap() {
       const sasData = store.sasScores.find(x => x.studentId === s.id && x.classId === classId && x.semester === semester);
       const tes = sasData?.tes ? Number(sasData.tes) : null;
       
+      const w1 = store.weeklyScores.find(x => x.studentId === s.id && x.classId === classId && x.semester === 1) || {} as any;
+      const w2 = store.weeklyScores.find(x => x.studentId === s.id && x.classId === classId && x.semester === 2) || {} as any;
+      
+      const mScores: any = {};
+      for (let i = 1; i <= 5; i++) mScores['m'+i] = w1['m'+i] ?? '-';
+      for (let i = 6; i <= 10; i++) mScores['m'+i] = w2['m'+i] ?? '-';
+
       let naSas: number | null = null;
       if (tes !== null) {
         if (isKelas6 && praktik !== '-') {
@@ -90,6 +110,7 @@ export function Recap() {
         id: s.id,
         name: s.name,
         avgW: avgW !== null ? avgW.toFixed(1) : '-',
+        ...mScores,
         praktik,
         tes: tes !== null ? tes.toFixed(1) : '-',
         naSas: naSas !== null ? naSas.toFixed(1) : '-',
@@ -136,12 +157,14 @@ export function Recap() {
       const base: any = {
         'No': i + 1,
         'Nama Siswa': r.name,
-        'NA Sumatif': r.avgW,
-        'Nilai Tes SAS': r.tes,
-        'NA SAS': r.naSas,
-        'Nilai Rapor': r.raport,
-        'Predikat': r.raport !== '-' ? getPred(+r.raport) : '-'
       };
+      for (let j = 1; j <= 10; j++) base['Sumatif ' + j] = r['m' + j];
+      base['NA Sumatif'] = r.avgW;
+      base['Nilai Tes SAS'] = r.tes;
+      base['NA SAS'] = r.naSas;
+      base['Nilai Rapor'] = r.raport;
+      base['Predikat'] = r.raport !== '-' ? getPred(+r.raport) : '-';
+      
       if (isKelas6) {
         base['Praktik'] = r.praktik;
         base['ASAJ'] = r.asaj;
@@ -200,51 +223,51 @@ export function Recap() {
         ) : students.length === 0 ? (
           <p className="p-6 text-center text-gray-400 text-sm">Belum ada siswa</p>
         ) : (
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 dark:bg-slate-700 sticky top-0 z-10">
+          <table className="w-full text-[10px] border-collapse">
+            <thead className="bg-gray-50 dark:bg-slate-700 sticky top-0 z-10 text-center">
               <tr className="border-b border-gray-200 dark:border-slate-600">
-                <th rowSpan={2} className="p-2 text-center border-r border-gray-200 dark:border-slate-600 text-[10px] w-10">No</th>
-                <th rowSpan={2} onClick={() => requestSort('name')} className="p-2 text-left border-r border-gray-200 dark:border-slate-600 text-[10px] cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors group">
-                  <div className="flex items-center gap-1.5">
-                    Nama Siswa {getSortIcon('name')}
-                  </div>
-                </th>
-                <th rowSpan={2} onClick={() => requestSort('avgW')} className="p-2 font-semibold text-[10px] text-center border-r border-gray-200 dark:border-slate-600 cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors">
-                  <div className="flex items-center justify-center gap-1.5">
-                    NA Sumatif {getSortIcon('avgW')}
-                  </div>
-                </th>
-                {isKelas6 && <th rowSpan={2} className="p-2 font-semibold text-[10px] border-r border-gray-200 dark:border-slate-600">Nilai Praktik</th>}
-                <th colSpan={2} className="p-1 font-bold text-[10px] text-center border-r border-gray-200 dark:border-slate-600 bg-blue-50/50 dark:bg-blue-900/10">SAS (Sumatif Akhir Semester)</th>
-                <th rowSpan={2} onClick={() => requestSort('raport')} className="p-2 font-semibold text-[10px] text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors bg-primary-50/30 border-r border-gray-200 dark:border-slate-600 text-primary-700 dark:text-primary-300">
-                  <div className="flex items-center justify-center gap-1.5">
-                    Nilai Rapor {getSortIcon('raport')}
-                  </div>
-                </th>
-                {isKelas6 && <th rowSpan={2} className="p-2 font-semibold text-[10px] border-r border-gray-200 dark:border-slate-600">ASAJ</th>}
-                <th rowSpan={2} className="p-2 font-semibold text-[10px] text-center border-r border-gray-200 dark:border-slate-600">Predikat</th>
-                <th rowSpan={2} className="p-2 font-semibold text-[10px] text-center">Status</th>
+                <th rowSpan={3} className="p-1 border-r border-gray-200 dark:border-slate-600 w-8">No</th>
+                <th rowSpan={3} className="p-2 text-left border-r border-gray-200 dark:border-slate-600 min-w-[150px]">Nama Siswa</th>
+                <th colSpan={11} className="p-1 font-bold border-r border-gray-200 dark:border-slate-600 bg-emerald-50/50 dark:bg-emerald-900/10">Sumatif Akhir Lingkup Materi (Wajib)</th>
+                {isKelas6 && <th rowSpan={3} className="p-1 border-r border-gray-200 dark:border-slate-600 text-[9px]">Nilai Praktik</th>}
+                <th colSpan={2} className="p-1 font-bold border-r border-gray-200 dark:border-slate-600 bg-blue-50/50 dark:bg-blue-900/10">SAS (Sumatif Akhir Semester)</th>
+                <th rowSpan={3} className="p-1 border-r border-gray-200 dark:border-slate-600 bg-primary-50/30 text-primary-700 dark:text-primary-300">Nilai Rapor</th>
+                {isKelas6 && <th rowSpan={3} className="p-1 border-r border-gray-200 dark:border-slate-600">ASAJ</th>}
+                <th rowSpan={3} className="p-1 border-r border-gray-200 dark:border-slate-600">Predikat</th>
+                <th rowSpan={3} className="p-1">Status</th>
               </tr>
-              <tr className="bg-gray-50/50 dark:bg-slate-700/50">
-                <th className="p-1 font-bold text-[9px] text-center border-r border-gray-200 dark:border-slate-600">Tes</th>
-                <th onClick={() => requestSort('naSas')} className="p-1 font-bold text-[9px] text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors border-r border-gray-200 dark:border-slate-600 text-blue-600 dark:text-blue-400">
-                   NA SAS {getSortIcon('naSas')}
-                </th>
+              <tr className="border-b border-gray-200 dark:border-slate-600 bg-gray-50/30">
+                {Array.from({ length: 10 }).map((_, i) => (
+                  <th key={i} className="p-1 border-r border-gray-200 dark:border-slate-600">Sumatif {i + 1}</th>
+                ))}
+                <th rowSpan={2} className="p-1 font-bold border-r border-gray-200 dark:border-slate-600 bg-emerald-100/50 dark:bg-emerald-800/30">NA Sumatif</th>
+                <th className="p-1 border-r border-gray-200 dark:border-slate-600">Tes</th>
+                <th className="p-1 border-r border-gray-200 dark:border-slate-600">NA SAS</th>
+              </tr>
+              <tr className="border-b border-gray-200 dark:border-slate-600 bg-gray-50/10">
+                {materialNames.map((m, i) => (
+                  <th key={i} className="p-1 border-r border-gray-200 dark:border-slate-600 font-normal text-[8px] leading-tight max-w-[60px]">{m}</th>
+                ))}
+                <th className="p-1 border-r border-gray-200 dark:border-slate-600">(Tes)</th>
+                <th className="p-1 border-r border-gray-200 dark:border-slate-600">(Akhir)</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
+            <tbody className="divide-y divide-gray-100 dark:divide-slate-700 text-center">
               {rows.map((r, i) => (
                 <tr key={i} className="dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-700/30 transition border-b border-gray-100 dark:border-slate-800">
-                  <td className="p-2 text-center text-xs border-r border-gray-100 dark:border-slate-800">{i + 1}</td>
-                  <td className="p-2 font-medium text-xs border-r border-gray-100 dark:border-slate-800">{r.name}</td>
-                  <td className="p-2 text-center text-xs border-r border-gray-100 dark:border-slate-800 font-bold text-emerald-600 dark:text-emerald-400">{r.avgW}</td>
-                  {isKelas6 && <td className="p-2 text-center text-xs border-r border-gray-100 dark:border-slate-800">{r.praktik}</td>}
-                  <td className="p-2 text-center text-xs border-r border-gray-100 dark:border-slate-800">{r.tes}</td>
-                  <td className="p-2 text-center text-xs border-r border-gray-100 dark:border-slate-800 font-bold text-blue-600 dark:text-blue-400">{r.naSas}</td>
-                  <td className="p-2 text-center font-black text-xs border-r border-gray-100 dark:border-slate-800 text-primary-600 dark:text-primary-400">{r.raport}</td>
-                  {isKelas6 && <td className="p-2 text-center text-xs border-r border-gray-100 dark:border-slate-800">{r.asaj}</td>}
-                  <td className="p-2 text-center text-xs border-r border-gray-100 dark:border-slate-800 font-bold">{r.raport !== '-' ? getPred(+r.raport) : '-'}</td>
-                  <td className="p-2 text-center text-xs">{r.raport !== '-' ? (+r.raport >= 75 ? <span className="text-primary-600 font-bold">Tuntas</span> : <span className="text-red-500 font-bold">Belum Tuntas</span>) : '-'}</td>
+                  <td className="p-1 border-r border-gray-100 dark:border-slate-800">{i + 1}</td>
+                  <td className="p-1 text-left font-medium border-r border-gray-100 dark:border-slate-800">{r.name}</td>
+                  {Array.from({ length: 10 }).map((_, j) => (
+                    <td key={j} className="p-1 border-r border-gray-100 dark:border-slate-800">{r['m' + (j + 1)]}</td>
+                  ))}
+                  <td className="p-1 font-bold border-r border-gray-100 dark:border-slate-800 bg-emerald-50/30 dark:bg-emerald-900/10">{r.avgW}</td>
+                  {isKelas6 && <td className="p-1 border-r border-gray-100 dark:border-slate-800">{r.praktik}</td>}
+                  <td className="p-1 border-r border-gray-100 dark:border-slate-800">{r.tes}</td>
+                  <td className="p-1 font-bold border-r border-gray-100 dark:border-slate-800 text-blue-600 dark:text-blue-400">{r.naSas}</td>
+                  <td className="p-1 font-black border-r border-gray-100 dark:border-slate-800 text-primary-600 dark:text-primary-400">{r.raport}</td>
+                  {isKelas6 && <td className="p-1 border-r border-gray-100 dark:border-slate-800">{r.asaj}</td>}
+                  <td className="p-1 font-bold border-r border-gray-100 dark:border-slate-800">{r.raport !== '-' ? getPred(+r.raport) : '-'}</td>
+                  <td className="p-1">{r.raport !== '-' ? (+r.raport >= 75 ? <span className="text-emerald-600 font-bold">Tuntas</span> : <span className="text-rose-500 font-bold">Remidi</span>) : '-'}</td>
                 </tr>
               ))}
             </tbody>
