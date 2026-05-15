@@ -66,7 +66,7 @@ export function Recap() {
     return (((+a.pg + +a.essay) / 50) * 100).toFixed(1);
   };
 
-  const materialNames = [
+  const defaultBabNames = [
     "Al-Qur'an & Hadis",
     "Allah Maha Segalanya",
     "Hidup Damai Memaafkan",
@@ -78,6 +78,8 @@ export function Recap() {
     "Mengamalkan Puasa Sunah",
     "Khalifah Usman & Ali"
   ];
+
+  const materialNames = cls?.babNames || defaultBabNames;
 
   const rows = useMemo(() => {
     return students.map(s => {

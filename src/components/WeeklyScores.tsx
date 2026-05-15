@@ -288,7 +288,7 @@ export function WeeklyScores() {
                       <div className="flex flex-col items-center">
                         <span className="text-[10px] text-primary-600 dark:text-primary-400 font-bold mb-0.5">SUMATIF {babIdx + 1}</span>
                         <span className="text-[8px] font-normal text-gray-500 dark:text-gray-400 leading-tight max-w-[80px]">
-                          {[
+                          {(store.classes.find(c => c.id === classId)?.babNames || [
                             "Belajar Al-Qur’an & Hadis",
                             "Allah Maha Segalanya",
                             "Hidup Damai Memaafkan",
@@ -299,7 +299,7 @@ export function WeeklyScores() {
                             "Peduli Lingkungan",
                             "Mengamalkan Puasa Sunah",
                             "Khalifah Usman & Ali"
-                          ][babIdx]}
+                          ])[babIdx]}
                         </span>
                       </div>
                     </th>

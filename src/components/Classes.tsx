@@ -1,7 +1,7 @@
 "use client";
 
 import { useStore, ClassData } from "@/store/useStore";
-import { Plus, Download, Upload, Edit, Trash2, X, FileSpreadsheet } from "lucide-react";
+import { Plus, Download, Upload, Edit, Trash2, X, FileSpreadsheet, BookOpen, Save } from "lucide-react";
 import { useState } from "react";
 import { ConfirmModal } from "./ConfirmModal";
 import * as XLSX from "xlsx";
@@ -13,6 +13,8 @@ export function Classes() {
   const [year, setYear] = useState(store.activeYear);
   const [showImport, setShowImport] = useState(false);
   const [deleteData, setDeleteData] = useState<{ id: string, name: string } | null>(null);
+  const [editingBabClass, setEditingBabClass] = useState<ClassData | null>(null);
+  const [tempBabNames, setTempBabNames] = useState<string[]>(Array(10).fill(""));
   
   const filteredClasses = store.classes.filter(c => c.year === store.activeYear);
 
@@ -31,6 +33,20 @@ export function Classes() {
     const { id } = deleteData;
     store.setClasses((prev) => prev.filter(c => c.id !== id));
     toast.success('Kelas berhasil dihapus');
+  };
+
+  const openBabModal = (cls: ClassData) => {
+    setEditingBabClass(cls);
+    setTempBabNames(cls.babNames || Array(10).fill(""));
+  };
+
+  const saveBabNames = () => {
+    if (!editingBabClass) return;
+    store.setClasses(prev => prev.map(c => 
+      c.id === editingBabClass.id ? { ...c, babNames: tempBabNames } : c
+    ));
+    setEditingBabClass(null);
+    toast.success('Nama bab berhasil disimpan');
   };
 
   const exportClasses = () => {
@@ -101,6 +117,51 @@ export function Classes() {
         </div>
       )}
 
+      {editingBabClass && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm fade-in" style={{ position: 'fixed' }}>
+          <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden border border-gray-100 dark:border-slate-700 flex flex-col max-h-[90vh]">
+            <div className="flex justify-between items-center p-5 border-b border-gray-100 dark:border-slate-700 bg-gray-50/50 dark:bg-slate-800/50">
+              <div>
+                <h3 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                  <BookOpen size={18} className="text-primary-500" /> Konfigurasi Nama Bab/Materi
+                </h3>
+                <p className="text-[10px] text-gray-500 font-bold uppercase mt-1">Kelas: {editingBabClass.name}</p>
+              </div>
+              <button onClick={() => setEditingBabClass(null)} className="text-gray-400 hover:text-red-500 transition-colors p-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20">
+                <X size={20} />
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-4">
+              {tempBabNames.map((bab, i) => (
+                <div key={i} className="space-y-1.5">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-wider">
+                    Bab / Sumatif {i + 1} {i < 5 ? '(Sem 1)' : '(Sem 2)'}
+                  </label>
+                  <input 
+                    value={bab}
+                    onChange={(e) => {
+                      const next = [...tempBabNames];
+                      next[i] = e.target.value;
+                      setTempBabNames(next);
+                    }}
+                    placeholder={`Masukkan nama materi ${i + 1}...`}
+                    className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary-500 transition text-xs"
+                  />
+                </div>
+              ))}
+            </div>
+            <div className="p-5 border-t border-gray-100 dark:border-slate-700 bg-gray-50/30 dark:bg-slate-800/30 flex justify-end">
+              <button 
+                onClick={saveBabNames}
+                className="px-6 py-2.5 bg-gradient-to-r from-primary-600 to-primary-700 text-white font-bold rounded-xl shadow-lg shadow-primary-500/20 flex items-center gap-2 hover:scale-105 active:scale-95 transition-all"
+              >
+                <Save size={18} /> Simpan Nama Bab
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="w-full max-w-6xl fade-in">
       <div className="flex flex-wrap gap-2 mb-4 justify-center">
         <input 
@@ -152,6 +213,9 @@ export function Classes() {
                       </span>
                     </td>
                     <td className="p-3 flex gap-1">
+                      <button onClick={() => openBabModal(c)} className="p-1.5 text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition" title="Konfigurasi Bab">
+                        <BookOpen size={15} />
+                      </button>
                       <button onClick={() => { setName(c.name); setYear(c.year); store.setClasses(p => p.filter(x => x.id !== c.id)); }} className="p-1.5 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition">
                         <Edit size={15} />
                       </button>

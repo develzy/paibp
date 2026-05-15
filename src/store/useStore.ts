@@ -2,7 +2,12 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { getCurrentAcademicYear } from '@/lib/data';
 
-export interface ClassData { id: string; name: string; year: string; }
+export interface ClassData { 
+  id: string; 
+  name: string; 
+  year: string; 
+  babNames?: string[]; // Array of 10 material names
+}
 export interface StudentData { id: string; nis: string; nisn?: string; name: string; classId: string; }
 export interface WeeklyScore { studentId: string; classId: string; semester: number; weeks: number; [key: string]: any; }
 export interface SASScore { studentId: string; classId: string; semester: number; pg?: number | string; isian?: number | string; uraian?: number | string; nonTes?: number | string; tes?: number | string; score: number | string; }
