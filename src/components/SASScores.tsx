@@ -15,10 +15,12 @@ export function SASScores() {
   const [search, setSearch] = useState("");
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' | null }>({ key: 'name', direction: 'asc' });
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'nonTes' | 'tes'>('tes');
 
   const filteredClasses = store.classes.filter(c => c.year === store.activeYear);
   const isValidClass = filteredClasses.some(c => c.id === classId);
+  const cls = store.classes.find(c => c.id === classId);
+  const isK6 = cls?.name.includes('6');
+
   const students = useMemo(() => {
     if (!isValidClass) return [];
     
@@ -34,11 +36,6 @@ export function SASScores() {
         if (sortConfig.key === 'name') {
           valA = a.name.toLowerCase();
           valB = b.name.toLowerCase();
-        } else if (sortConfig.key === 'score') {
-          const scA = store.sasScores.find(x => x.studentId === a.id && x.classId === classId && x.semester === semester)?.score || 0;
-          const scB = store.sasScores.find(x => x.studentId === b.id && x.classId === classId && x.semester === semester)?.score || 0;
-          valA = Number(scA);
-          valB = Number(scB);
         }
 
         if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
@@ -48,7 +45,7 @@ export function SASScores() {
     }
     
     return base;
-  }, [isValidClass, store.students, store.sasScores, classId, search, sortConfig, semester]);
+  }, [isValidClass, store.students, classId, search, sortConfig]);
 
   const requestSort = (key: string) => {
     let direction: 'asc' | 'desc' = 'asc';
@@ -64,22 +61,42 @@ export function SASScores() {
   };
 
   const getWeeklyAvg = (studentId: string, clsId: string) => {
-    const sems = store.weeklyScores.filter((x) => x.studentId === studentId && x.classId === clsId && x.semester === semester);
-    if (!sems.length) return null;
-    let totalSum = 0, totalCount = 0;
-    sems.forEach((sem) => {
-      const nw = sem.weeks || 20;
-      for (let i = 1; i <= nw; i++) {
+    const sem1 = store.weeklyScores.find(x => x.studentId === studentId && x.classId === clsId && x.semester === 1);
+    const sem2 = store.weeklyScores.find(x => x.studentId === studentId && x.classId === clsId && x.semester === 2);
+    
+    function semAvg(sem: any) {
+      if (!sem) return null;
+      const start = semester === 1 ? 1 : 6;
+      const end = semester === 1 ? 5 : 10;
+      let sum = 0, cnt = 0;
+      for (let i = start; i <= end; i++) {
         const v = sem['m' + i];
-        if (v !== '' && v !== undefined && v !== null) { totalSum += +v; totalCount++; }
+        if (v !== '' && v !== undefined && v !== null) { sum += +v; cnt++; }
+      }
+      return cnt > 0 ? sum / cnt : null;
+    }
+    
+    return semAvg(semester === 1 ? sem1 : sem2);
+  };
+
+  const getPracticeAvg = (studentId: string, clsId: string) => {
+    const pr = store.practiceScores.find(x => x.studentId === studentId && x.classId === clsId);
+    if (!pr) return null;
+    let sum = 0, count = 0;
+    ['wudhu', 'quran', 'sholat', 'tayamum'].forEach(cat => {
+      // @ts-ignore
+      const val = pr[cat];
+      if (val !== undefined && val !== null && val !== '') {
+        sum += Number(val);
+        count++;
       }
     });
-    return totalCount > 0 ? totalSum / totalCount : null;
+    return count > 0 ? sum / count : null;
   };
 
   const getPred = (v: number) => (v >= 90 ? 'A' : v >= 80 ? 'B' : v >= 75 ? 'C' : 'D');
 
-  const handleScoreChange = (studentId: string, field: 'nonTes' | 'pg' | 'isian' | 'uraian', val: string) => {
+  const handleScoreChange = (studentId: string, field: 'pg' | 'isian' | 'uraian', val: string) => {
     store.setSASScores((prev) => {
       let exists = false;
       const next = prev.map(s => {
@@ -94,29 +111,17 @@ export function SASScores() {
           const tesVal = ((pg + isian + uraian) / 50) * 100;
           updated.tes = (updated.pg !== '' || updated.isian !== '' || updated.uraian !== '') ? tesVal.toFixed(1) : '';
 
-          // Calculate NA SAS ( (Non-Tes + Tes) / 2 )
-          const nt = updated.nonTes !== '' && updated.nonTes !== undefined ? Number(updated.nonTes) : null;
-          const t = updated.tes !== '' && updated.tes !== undefined ? Number(updated.tes) : null;
-          
-          if (nt !== null && t !== null) updated.score = ((nt + t) / 2).toFixed(1);
-          else if (nt !== null) updated.score = nt.toFixed(1);
-          else if (t !== null) updated.score = t.toFixed(1);
-          else updated.score = '';
-          
+          // NA SAS logic is now handled during render/report
           return updated;
         }
         return s;
       });
       if (!exists) {
         const newItem: any = { studentId, classId, semester, [field]: val !== '' ? Number(val) : '', score: '' };
-        if (field === 'nonTes') newItem.score = val !== '' ? Number(val).toFixed(1) : '';
-        else {
-           const pg = field === 'pg' ? Number(val) : 0;
-           const isian = field === 'isian' ? Number(val) : 0;
-           const uraian = field === 'uraian' ? Number(val) : 0;
-           newItem.tes = ((pg + isian + uraian) / 50 * 100).toFixed(1);
-           newItem.score = newItem.tes;
-        }
+        const pg = field === 'pg' ? Number(val) : 0;
+        const isian = field === 'isian' ? Number(val) : 0;
+        const uraian = field === 'uraian' ? Number(val) : 0;
+        newItem.tes = ((pg + isian + uraian) / 50 * 100).toFixed(1);
         next.push(newItem);
       }
       return next;
@@ -130,14 +135,26 @@ export function SASScores() {
 
   const exportSAS = () => {
     if (!classId) return toast.error('Pilih kelas terlebih dahulu');
-    const cls = store.classes.find(c => c.id === classId);
     const data = students.map(s => {
       const sc = store.sasScores.find(x => x.studentId === s.id && x.classId === classId && x.semester === semester) || {} as any;
       const avgW = getWeeklyAvg(s.id, classId);
-      const raport = avgW !== null && sc.score !== '' && sc.score !== undefined ? ((avgW + +sc.score) / 2).toFixed(1) : '-';
+      const prAvg = isK6 ? getPracticeAvg(s.id, classId) : null;
+      
+      let naSas: number | null = null;
+      if (sc.tes !== '' && sc.tes !== undefined) {
+        if (isK6 && prAvg !== null) {
+          naSas = (+sc.tes + prAvg) / 2;
+        } else {
+          naSas = +sc.tes;
+        }
+      }
+
+      const raport = avgW !== null && naSas !== null ? ((avgW + naSas) / 2).toFixed(1) : '-';
+      
       return {
         'Nama': s.name, 'NIS': s.nis, 'PG': sc.pg || '-', 'Isian': sc.isian || '-', 'Uraian': sc.uraian || '-',
-        'NA SAS': sc.score || '-', 'Mingguan': avgW?.toFixed(1) || '-', 'Raport': raport
+        'Nilai Tes': sc.tes || '-', 'Nilai Praktik (Non-Tes)': prAvg?.toFixed(1) || '-',
+        'NA SAS': naSas?.toFixed(1) || '-', 'Sumatif Mingguan': avgW?.toFixed(1) || '-', 'Nilai Raport': raport
       };
     });
     const ws = XLSX.utils.json_to_sheet(data);
@@ -148,8 +165,7 @@ export function SASScores() {
 
   const downloadTemplate = () => {
     if (!classId) return toast.error('Pilih kelas terlebih dahulu');
-    const cls = store.classes.find(c => c.id === classId);
-    const data = students.map(s => ({ 'Nama': s.name, 'NIS': s.nis, 'Non Tes': '', 'PG': '', 'Isian': '', 'Uraian': '' }));
+    const data = students.map(s => ({ 'Nama': s.name, 'NIS': s.nis, 'PG': '', 'Isian': '', 'Uraian': '' }));
     const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Template SAS');
@@ -174,22 +190,16 @@ export function SASScores() {
               const existingIndex = next.findIndex(s => s.studentId === student.id && s.classId === classId && s.semester === semester);
               let s = existingIndex >= 0 ? { ...next[existingIndex] } : { studentId: student.id, classId, semester, pg: '', isian: '', uraian: '', score: '' } as any;
               let updated = false;
-              if (row['Non Tes'] !== undefined && row['Non Tes'] !== '-') { s.nonTes = Number(row['Non Tes']); updated = true; }
               if (row['PG'] !== undefined && row['PG'] !== '-') { s.pg = Number(row['PG']); updated = true; }
               if (row['Isian'] !== undefined && row['Isian'] !== '-') { s.isian = Number(row['Isian']); updated = true; }
               if (row['Uraian'] !== undefined && row['Uraian'] !== '-') { s.uraian = Number(row['Uraian']); updated = true; }
               if (updated) {
-                const nt = s.nonTes !== '' && s.nonTes !== undefined ? Number(s.nonTes) : null;
                 const pg = Number(s.pg || 0);
                 const isian = Number(s.isian || 0);
                 const uraian = Number(s.uraian || 0);
                 const t = (s.pg !== '' || s.isian !== '' || s.uraian !== '') ? ((pg + isian + uraian) / 50 * 100) : null;
                 s.tes = t !== null ? t.toFixed(1) : '';
                 
-                if (nt !== null && t !== null) s.score = ((nt + t) / 2).toFixed(1);
-                else if (nt !== null) s.score = nt.toFixed(1);
-                else if (t !== null) s.score = t.toFixed(1);
-                else s.score = '';
                 if (existingIndex >= 0) next[existingIndex] = s;
                 else next.push(s);
                 count++;
@@ -220,7 +230,7 @@ export function SASScores() {
             </div>
             <div className="p-6">
               <p className="text-sm text-gray-600 dark:text-gray-300 mb-5 leading-relaxed">
-                Silakan unduh template Excel terlebih dahulu, isi nilai siswa, lalu unggah kembali file tersebut.
+                Silakan unduh template Excel terlebih dahulu, isi nilai siswa (PG, Isian, Uraian), lalu unggah kembali.
               </p>
               <div className="flex flex-col gap-3">
                 <button onClick={downloadTemplate} className="w-full py-3 px-4 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 dark:hover:bg-blue-900/40 text-blue-600 dark:text-blue-400 font-semibold rounded-xl flex items-center justify-center gap-2 transition-colors border border-blue-200 dark:border-slate-700">
@@ -274,60 +284,32 @@ export function SASScores() {
             />
           </div>
 
-          <div className="flex justify-center mb-6">
-            <div className="bg-gray-100 dark:bg-slate-700/50 p-1 rounded-2xl flex gap-1 shadow-inner border border-gray-200 dark:border-slate-600">
-              <button 
-                onClick={() => setActiveTab('tes')}
-                className={`px-6 py-2 rounded-xl text-sm font-bold transition-all ${activeTab === 'tes' ? 'bg-white dark:bg-slate-800 text-primary-600 dark:text-primary-400 shadow-md' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'}`}
-              >
-                Penilaian Tes
-              </button>
-              <button 
-                onClick={() => setActiveTab('nonTes')}
-                className={`px-6 py-2 rounded-xl text-sm font-bold transition-all ${activeTab === 'nonTes' ? 'bg-white dark:bg-slate-800 text-primary-600 dark:text-primary-400 shadow-md' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'}`}
-              >
-                Penilaian Non-Tes
-              </button>
-            </div>
-          </div>
-
           <div className="mb-4 p-4 bg-primary-50/50 dark:bg-primary-900/10 border border-primary-100 dark:border-primary-800/30 rounded-2xl">
             <h4 className="text-xs font-bold text-primary-800 dark:text-primary-300 mb-2 flex items-center gap-1.5 uppercase tracking-wider">
-              <Scale size={14} /> Pedoman Penilaian SAS ({activeTab === 'tes' ? 'TES' : 'NON-TES'}):
+              <Scale size={14} /> Pedoman Penilaian SAS:
             </h4>
-            {activeTab === 'tes' ? (
-              <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-                <div className="p-2 rounded-lg bg-white/50 dark:bg-slate-800/50 border border-primary-100/50 dark:border-primary-800/20">
-                  <p className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">I. Pilihan Ganda</p>
-                  <p className="text-xs font-bold text-gray-900 dark:text-white">15 Soal &times; 1 = 15</p>
-                </div>
-                <div className="p-2 rounded-lg bg-white/50 dark:bg-slate-800/50 border border-primary-100/50 dark:border-primary-800/20">
-                  <p className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">II. Isian</p>
-                  <p className="text-xs font-bold text-gray-900 dark:text-white">10 Soal &times; 2 = 20</p>
-                </div>
-                <div className="p-2 rounded-lg bg-white/50 dark:bg-slate-800/50 border border-primary-100/50 dark:border-primary-800/20">
-                  <p className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">III. Uraian</p>
-                  <p className="text-xs font-bold text-gray-900 dark:text-white">5 Soal &times; 3 = 15</p>
-                </div>
-                <div className="p-2 rounded-lg bg-primary-600 text-white shadow-md shadow-primary-500/20 flex flex-col justify-center">
-                  <p className="text-[10px] font-bold text-primary-100 uppercase mb-0.5">Nilai Tes</p>
-                  <p className="text-sm font-black">((Σ Skor) / 50) &times; 100</p>
-                </div>
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+              <div className="p-2 rounded-lg bg-white/50 dark:bg-slate-800/50 border border-primary-100/50 dark:border-primary-800/20">
+                <p className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">I. Pilihan Ganda</p>
+                <p className="text-xs font-bold text-gray-900 dark:text-white">15 Soal &times; 1 = 15</p>
               </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="p-2 rounded-lg bg-white/50 dark:bg-slate-800/50 border border-primary-100/50 dark:border-primary-800/20">
-                  <p className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Komponen Non-Tes</p>
-                  <p className="text-xs font-bold text-gray-900 dark:text-white">Portofolio, Proyek, Unjuk Kerja, dll.</p>
-                </div>
-                <div className="p-2 rounded-lg bg-emerald-600 text-white shadow-md shadow-emerald-500/20 flex flex-col justify-center">
-                  <p className="text-[10px] font-bold text-emerald-100 uppercase mb-0.5">Skor Non-Tes</p>
-                  <p className="text-sm font-black">0 - 100</p>
-                </div>
+              <div className="p-2 rounded-lg bg-white/50 dark:bg-slate-800/50 border border-primary-100/50 dark:border-primary-800/20">
+                <p className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">II. Isian</p>
+                <p className="text-xs font-bold text-gray-900 dark:text-white">10 Soal &times; 2 = 20</p>
               </div>
-            )}
+              <div className="p-2 rounded-lg bg-white/50 dark:bg-slate-800/50 border border-primary-100/50 dark:border-primary-800/20">
+                <p className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">III. Uraian</p>
+                <p className="text-xs font-bold text-gray-900 dark:text-white">5 Soal &times; 3 = 15</p>
+              </div>
+              <div className="p-2 rounded-lg bg-primary-600 text-white shadow-md shadow-primary-500/20 flex flex-col justify-center">
+                <p className="text-[10px] font-bold text-primary-100 uppercase mb-0.5">Nilai Tes</p>
+                <p className="text-sm font-black">((Σ Skor) / 50) &times; 100</p>
+              </div>
+            </div>
             <div className="mt-3 pt-2 border-t border-primary-100 dark:border-primary-800/30">
-               <p className="text-[10px] text-gray-500 italic"><strong>NA SAS:</strong> (Nilai Tes + Nilai Non-Tes) / 2</p>
+               <p className="text-[10px] text-gray-500 italic">
+                 {isK6 ? <strong>NA SAS: (Nilai Tes SAS + Rata-rata Nilai Praktik) / 2</strong> : <strong>NA SAS: Nilai Tes SAS</strong>}
+               </p>
             </div>
           </div>
         </>
@@ -347,19 +329,14 @@ export function SASScores() {
                     Nama {getSortIcon('name')}
                   </div>
                 </th>
-                {activeTab === 'tes' ? (
-                  <>
-                    <th className="p-3 font-semibold text-xs text-center bg-blue-50/30 dark:bg-blue-900/10">PG (0-15)</th>
-                    <th className="p-3 font-semibold text-xs text-center bg-blue-50/30 dark:bg-blue-900/10">Isian (0-20)</th>
-                    <th className="p-3 font-semibold text-xs text-center bg-blue-50/30 dark:bg-blue-900/10">Uraian (0-15)</th>
-                    <th className="p-3 font-semibold text-xs text-center bg-emerald-50/30 dark:bg-emerald-900/10">Nilai Tes</th>
-                  </>
-                ) : (
-                  <th className="p-3 font-semibold text-xs text-center bg-amber-50/30 dark:bg-amber-900/10">Nilai Non-Tes (0-100)</th>
-                )}
-                <th onClick={() => requestSort('score')} className="p-3 font-semibold text-xs text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors group bg-primary-50/20">
+                <th className="p-3 font-semibold text-xs text-center bg-blue-50/30 dark:bg-blue-900/10">PG (0-15)</th>
+                <th className="p-3 font-semibold text-xs text-center bg-blue-50/30 dark:bg-blue-900/10">Isian (0-20)</th>
+                <th className="p-3 font-semibold text-xs text-center bg-blue-50/30 dark:bg-blue-900/10">Uraian (0-15)</th>
+                <th className="p-3 font-semibold text-xs text-center bg-emerald-50/30 dark:bg-emerald-900/10">Nilai Tes</th>
+                {isK6 && <th className="p-3 font-semibold text-xs text-center bg-amber-50/30 dark:bg-amber-900/10">Nilai Praktik</th>}
+                <th className="p-3 font-semibold text-xs text-center group bg-primary-50/20">
                   <div className="flex items-center justify-center gap-1.5">
-                    NA SAS {getSortIcon('score')}
+                    NA SAS
                   </div>
                 </th>
                 <th className="p-3 font-semibold text-xs text-center">Predikat</th>
@@ -368,54 +345,53 @@ export function SASScores() {
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
               {students.map(s => {
-                const sc = store.sasScores.find(x => x.studentId === s.id && x.classId === classId && x.semester === semester) || { pg: '', isian: '', uraian: '', nonTes: '', tes: '', score: '' };
+                const sc = store.sasScores.find(x => x.studentId === s.id && x.classId === classId && x.semester === semester) || { pg: '', isian: '', uraian: '', tes: '' };
                 const avgW = getWeeklyAvg(s.id, classId);
-                const raport = avgW !== null && sc.score !== '' && sc.score !== undefined ? ((avgW + +sc.score) / 2).toFixed(1) : '-';
+                const prAvg = isK6 ? getPracticeAvg(s.id, classId) : null;
+                
+                let naSas: number | null = null;
+                if (sc.tes !== '' && sc.tes !== undefined) {
+                  if (isK6 && prAvg !== null) {
+                    naSas = (+sc.tes + prAvg) / 2;
+                  } else {
+                    naSas = +sc.tes;
+                  }
+                }
+
+                const raport = avgW !== null && naSas !== null ? ((avgW + naSas) / 2).toFixed(1) : '-';
                 const pred = raport !== '-' ? getPred(+raport) : '-';
                 const status = raport !== '-' ? (+raport >= 75 ? <span className="text-primary-600 font-medium">Tuntas</span> : <span className="text-red-500 font-medium">Belum Tuntas</span>) : '-';
 
                 return (
                   <tr key={s.id} className="dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-700/30 transition">
                     <td className="p-3 font-medium text-sm">{s.name}</td>
-                    {activeTab === 'tes' ? (
-                      <>
-                        <td className="p-3 text-center">
-                          <input 
-                            type="number" min="0" max="15" 
-                            value={sc.pg ?? ''} 
-                            onChange={(e) => handleScoreChange(s.id, 'pg', e.target.value)} 
-                            className="w-16 px-2 py-1 text-center rounded-lg border border-gray-200 dark:border-slate-600 dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-primary-500" 
-                          />
-                        </td>
-                        <td className="p-3 text-center">
-                          <input 
-                            type="number" min="0" max="20" 
-                            value={sc.isian ?? ''} 
-                            onChange={(e) => handleScoreChange(s.id, 'isian', e.target.value)} 
-                            className="w-16 px-2 py-1 text-center rounded-lg border border-gray-200 dark:border-slate-600 dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-primary-500" 
-                          />
-                        </td>
-                        <td className="p-3 text-center">
-                          <input 
-                            type="number" min="0" max="15" 
-                            value={sc.uraian ?? ''} 
-                            onChange={(e) => handleScoreChange(s.id, 'uraian', e.target.value)} 
-                            className="w-16 px-2 py-1 text-center rounded-lg border border-gray-200 dark:border-slate-600 dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-primary-500" 
-                          />
-                        </td>
-                        <td className="p-3 text-center font-bold text-emerald-600 dark:text-emerald-400">{sc.tes || '0'}</td>
-                      </>
-                    ) : (
-                      <td className="p-3 text-center">
-                        <input 
-                           type="number" min="0" max="100" 
-                           value={sc.nonTes ?? ''} 
-                           onChange={(e) => handleScoreChange(s.id, 'nonTes', e.target.value)} 
-                           className="w-24 px-2 py-1 text-center rounded-lg border border-gray-200 dark:border-slate-600 dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-primary-500" 
-                        />
-                      </td>
-                    )}
-                    <td className="p-3 text-center font-bold text-primary-600 dark:text-primary-400">{sc.score || '0'}</td>
+                    <td className="p-3 text-center">
+                      <input 
+                        type="number" min="0" max="15" 
+                        value={sc.pg ?? ''} 
+                        onChange={(e) => handleScoreChange(s.id, 'pg', e.target.value)} 
+                        className="w-16 px-2 py-1 text-center rounded-lg border border-gray-200 dark:border-slate-600 dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-primary-500" 
+                      />
+                    </td>
+                    <td className="p-3 text-center">
+                      <input 
+                        type="number" min="0" max="20" 
+                        value={sc.isian ?? ''} 
+                        onChange={(e) => handleScoreChange(s.id, 'isian', e.target.value)} 
+                        className="w-16 px-2 py-1 text-center rounded-lg border border-gray-200 dark:border-slate-600 dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-primary-500" 
+                      />
+                    </td>
+                    <td className="p-3 text-center">
+                      <input 
+                        type="number" min="0" max="15" 
+                        value={sc.uraian ?? ''} 
+                        onChange={(e) => handleScoreChange(s.id, 'uraian', e.target.value)} 
+                        className="w-16 px-2 py-1 text-center rounded-lg border border-gray-200 dark:border-slate-600 dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-primary-500" 
+                      />
+                    </td>
+                    <td className="p-3 text-center font-bold text-emerald-600 dark:text-emerald-400">{sc.tes || '0'}</td>
+                    {isK6 && <td className="p-3 text-center font-bold text-amber-600 dark:text-amber-400">{prAvg?.toFixed(1) || '-'}</td>}
+                    <td className="p-3 text-center font-bold text-primary-600 dark:text-primary-400">{naSas?.toFixed(1) || '0'}</td>
                     <td className="p-3 text-center">{pred}</td>
                     <td className="p-3 text-center">{status}</td>
                   </tr>

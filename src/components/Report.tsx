@@ -49,17 +49,15 @@ export function Report() {
     const avgWStr = semAvg(semester === 1 ? sem1 : sem2);
     const avgW = avgWStr === '-' ? null : Number(avgWStr);
 
-    const sas = store.sasScores.find(x => x.studentId === sid && x.classId === classId && x.semester === semester)?.score || '';
-    const raport = avgW !== null && sas !== '' ? ((avgW + +sas) / 2) : null;
+    const sasData = store.sasScores.find(x => x.studentId === sid && x.classId === classId && x.semester === semester);
+    const tesSAS = sasData?.tes ? Number(sasData.tes) : null;
+    const isK6 = cls?.name.includes('6');
+    
     const pr = store.practiceScores.find(x => x.studentId === sid && x.classId === classId);
     
     const getPracticeVal = (pr: any, cat: string) => {
       const val = pr?.[cat];
       if (val === undefined || val === null || val === '') return '-';
-      if (typeof val === 'object') {
-        const vals = Object.values(val).filter(v => v !== '') as number[];
-        return vals.length ? (vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1) : '-';
-      }
       return Number(val).toFixed(1);
     };
 
@@ -68,12 +66,27 @@ export function Report() {
       const q = getPracticeVal(pr, 'quran');
       const sh = getPracticeVal(pr, 'sholat');
       const t = getPracticeVal(pr, 'tayamum');
-      if ([w, q, sh, t].includes('-')) return '-';
-      return ((+w * 0.25) + (+q * 0.25) + (+sh * 0.35) + (+t * 0.15)).toFixed(1);
+      let sum = 0, count = 0;
+      if (w !== '-') { sum += +w; count++; }
+      if (q !== '-') { sum += +q; count++; }
+      if (sh !== '-') { sum += +sh; count++; }
+      if (t !== '-') { sum += +t; count++; }
+      return count > 0 ? (sum / count).toFixed(1) : '-';
     };
 
     const praktik = pr ? calcFinalPractice(pr) : '-';
-    const isK6 = cls?.name.includes('6');
+    
+    let sas: string | number = '-';
+    if (tesSAS !== null) {
+      if (isK6 && praktik !== '-') {
+        sas = ((tesSAS + +praktik) / 2).toFixed(1);
+      } else {
+        sas = tesSAS.toFixed(1);
+      }
+    }
+
+    const raport = avgW !== null && sas !== '-' ? ((avgW + +sas) / 2) : null;
+
     const asajData = isK6 ? (() => {
       const a = store.asajScores.find(x => x.studentId === sid);
       if (!a) return { nilai: '-' };

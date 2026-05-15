@@ -17,33 +17,33 @@ export function Recap() {
   const filteredClasses = store.classes.filter(c => c.year === store.activeYear);
   const isValidClass = filteredClasses.some(c => c.id === classId);
   const students = isValidClass ? store.students.filter(s => s.classId === classId) : [];
-  const isKelas6 = filteredClasses.find(c => c.id === classId)?.name.includes('6');
+  const cls = store.classes.find(c => c.id === classId);
+  const isKelas6 = cls?.name.includes('6');
 
   const getWeeklyAvg = (studentId: string, clsId: string) => {
-    const sems = store.weeklyScores.filter((x) => x.studentId === studentId && x.classId === clsId && x.semester === semester);
-    if (!sems.length) return null;
-    let totalSum = 0, totalCount = 0;
-    sems.forEach((sem) => {
+    const sem1 = store.weeklyScores.find(x => x.studentId === studentId && x.classId === clsId && x.semester === 1);
+    const sem2 = store.weeklyScores.find(x => x.studentId === studentId && x.classId === clsId && x.semester === 2);
+    
+    function semAvg(sem: any) {
+      if (!sem) return null;
       const start = semester === 1 ? 1 : 6;
       const end = semester === 1 ? 5 : 10;
+      let sum = 0, cnt = 0;
       for (let i = start; i <= end; i++) {
         const v = sem['m' + i];
-        if (v !== '' && v !== undefined && v !== null) { totalSum += +v; totalCount++; }
+        if (v !== '' && v !== undefined && v !== null) { sum += +v; cnt++; }
       }
-    });
-    return totalCount > 0 ? totalSum / totalCount : null;
+      return cnt > 0 ? sum / cnt : null;
+    }
+    
+    return semAvg(semester === 1 ? sem1 : sem2);
   };
 
   const getPred = (v: number) => (v >= 90 ? 'A' : v >= 80 ? 'B' : v >= 75 ? 'C' : 'D');
 
   const getPracticeVal = (pr: any, cat: string) => {
-    const val = pr[cat];
+    const val = pr?.[cat];
     if (val === undefined || val === null || val === '') return '-';
-    // Fallback if old data is object
-    if (typeof val === 'object') {
-      const vals = Object.values(val).filter(v => v !== '') as number[];
-      return vals.length ? (vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1) : '-';
-    }
     return Number(val).toFixed(1);
   };
 
@@ -52,72 +52,70 @@ export function Recap() {
     const q = getPracticeVal(pr, 'quran');
     const s = getPracticeVal(pr, 'sholat');
     const t = getPracticeVal(pr, 'tayamum');
-    if ([w, q, s, t].includes('-')) return '-';
-    // Using equal weights for simplicity if preferred, but keeping original weights:
-    return ((+w * 0.25) + (+q * 0.25) + (+s * 0.35) + (+t * 0.15)).toFixed(1);
+    let sum = 0, count = 0;
+    if (w !== '-') { sum += +w; count++; }
+    if (q !== '-') { sum += +q; count++; }
+    if (s !== '-') { sum += +s; count++; }
+    if (t !== '-') { sum += +t; count++; }
+    return count > 0 ? (sum / count).toFixed(1) : '-';
   };
 
   const calcASAJ = (a: any) => {
-    if (a.pg === '' || a.pg === undefined || a.essay === '' || a.essay === undefined) return { total: '-', nilai: '-' };
-    const total = +a.pg + +a.essay;
-    const nilai = ((total / 50) * 100).toFixed(1);
-    return { total, nilai };
+    if (!a) return '-';
+    if (a.pg === '' || a.essay === '') return '-';
+    return (((+a.pg + +a.essay) / 50) * 100).toFixed(1);
   };
 
   const rows = useMemo(() => {
-    if (!isValidClass) return [];
-    
-    let base = students.map(s => {
+    return students.map(s => {
       const avgW = getWeeklyAvg(s.id, classId);
-      const sasObj = store.sasScores.find(x => x.studentId === s.id && x.classId === classId && x.semester === semester);
-      const nonTes = sasObj?.nonTes || '-';
-      const tes = sasObj?.tes || '-';
-      const naSas = sasObj?.score || '-';
-      
-      const raport = avgW !== null && naSas !== '-' ? ((avgW + +naSas) / 2) : null;
       const pr = store.practiceScores.find(x => x.studentId === s.id && x.classId === classId);
       const praktik = pr ? calcFinalPractice(pr) : '-';
-      const asaj = isKelas6 ? (() => {
-        const a = store.asajScores.find(x => x.studentId === s.id);
-        return a ? calcASAJ(a).nilai : '-';
-      })() : '-';
+      const sasData = store.sasScores.find(x => x.studentId === s.id && x.classId === classId && x.semester === semester);
+      const tes = sasData?.tes ? Number(sasData.tes) : null;
+      
+      let naSas: number | null = null;
+      if (tes !== null) {
+        if (isKelas6 && praktik !== '-') {
+          naSas = (tes + +praktik) / 2;
+        } else {
+          naSas = tes;
+        }
+      }
+
+      const raportValue = avgW !== null && naSas !== null ? (avgW + naSas) / 2 : null;
+      const asaj = isKelas6 ? calcASAJ(store.asajScores.find(x => x.studentId === s.id)) : '-';
 
       return {
+        id: s.id,
         name: s.name,
-        avgW: avgW?.toFixed(1) || '-',
-        nonTes, tes, naSas,
-        raport: raport?.toFixed(1) || '-',
-        praktik, asaj, raportNum: raport,
-        sasNum: naSas !== '-' ? Number(naSas) : -1,
-        nis: s.nis
+        avgW: avgW !== null ? avgW.toFixed(1) : '-',
+        praktik,
+        tes: tes !== null ? tes.toFixed(1) : '-',
+        naSas: naSas !== null ? naSas.toFixed(1) : '-',
+        raport: raportValue !== null ? raportValue.toFixed(1) : '-',
+        asaj
       };
-    }).filter(r => 
-      !search || r.name.toLowerCase().includes(search.toLowerCase()) || r.nis.includes(search)
-    );
+    }).filter(r => !search || r.name.toLowerCase().includes(search.toLowerCase()))
+    .sort((a, b) => {
+      if (!sortConfig.key || !sortConfig.direction) return 0;
+      let valA: any = a[sortConfig.key as keyof typeof a];
+      let valB: any = b[sortConfig.key as keyof typeof b];
+      
+      if (valA === '-') valA = -1;
+      if (valB === '-') valB = -1;
+      
+      if (typeof valA === 'string' && isNaN(Number(valA))) valA = valA.toLowerCase();
+      else valA = Number(valA);
+      
+      if (typeof valB === 'string' && isNaN(Number(valB))) valB = valB.toLowerCase();
+      else valB = Number(valB);
 
-    if (sortConfig.key && sortConfig.direction) {
-      base.sort((a, b) => {
-        let valA: any, valB: any;
-        
-        if (sortConfig.key === 'name') {
-          valA = a.name.toLowerCase();
-          valB = b.name.toLowerCase();
-        } else if (sortConfig.key === 'sas') {
-          valA = a.sasNum;
-          valB = b.sasNum;
-        } else if (sortConfig.key === 'raport') {
-          valA = a.raportNum || 0;
-          valB = b.raportNum || 0;
-        }
-
-        if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
-        if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
-        return 0;
-      });
-    }
-    
-    return base;
-  }, [students, classId, isValidClass, store.sasScores, store.weeklyScores, store.practiceScores, store.asajScores, search, sortConfig, isKelas6]);
+      if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
+      if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [students, classId, semester, search, sortConfig, store.weeklyScores, store.practiceScores, store.sasScores, store.asajScores]);
 
   const requestSort = (key: string) => {
     let direction: 'asc' | 'desc' = 'asc';
@@ -133,18 +131,24 @@ export function Recap() {
   };
 
   const exportRecap = () => {
-    if (!classId) return setAlertMsg('Silakan pilih kelas terlebih dahulu sebelum mengekspor data rekapitulasi nilai.');
-    const cls = store.classes.find(c => c.id === classId);
-    const exportData = rows.map((r, idx) => {
-      const row: any = {
-        '#': idx + 1, 'Nama': r.name, 'NA Sumatif': r.avgW, 'Praktik': r.praktik, 'Non Tes': r.nonTes, 'Tes': r.tes, 'NA SAS': r.naSas, 'Raport': r.raport
+    if (!classId) return setAlertMsg('Pilih kelas terlebih dahulu');
+    const data = rows.map((r, i) => {
+      const base: any = {
+        'No': i + 1,
+        'Nama Siswa': r.name,
+        'NA Sumatif': r.avgW,
+        'Nilai Tes SAS': r.tes,
+        'NA SAS': r.naSas,
+        'Nilai Rapor': r.raport,
+        'Predikat': r.raport !== '-' ? getPred(+r.raport) : '-'
       };
-      if (isKelas6) row['ASAJ'] = r.asaj;
-      row['Predikat'] = r.raport !== '-' ? getPred(+r.raport) : '-';
-      row['Status'] = r.raport !== '-' ? (+r.raport >= 75 ? 'Tuntas' : 'Belum Tuntas') : '-';
-      return row;
+      if (isKelas6) {
+        base['Praktik'] = r.praktik;
+        base['ASAJ'] = r.asaj;
+      }
+      return base;
     });
-    const ws = XLSX.utils.json_to_sheet(exportData);
+    const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Rekap Nilai');
     XLSX.writeFile(wb, `rekap_nilai_${cls?.name}_sem${semester}.xlsx`);
@@ -184,8 +188,9 @@ export function Recap() {
       <div className="glass rounded-2xl p-4 mb-4 dark:text-gray-300 shadow-sm">
         <h4 className="font-semibold text-xs text-gray-800 dark:text-white mb-1.5 font-serif">Penjelasan Penilaian:</h4>
         <div className="text-[11px] space-y-0.5 text-gray-500 dark:text-gray-400">
-          <p><strong>Nilai Rapor:</strong> (NA Sumatif + NA SAS) ÷ 2 &nbsp;|&nbsp; <strong>Praktik:</strong> Wudhu 25%, Qur'an 25%, Sholat 35%, Tayamum 15%</p>
-          <p><strong>NA SAS:</strong> (Non Tes + Tes) ÷ 2 &nbsp;|&nbsp; <strong>Predikat:</strong> A (90-100), B (80-89), C (75-79), D (&lt;75) &nbsp;|&nbsp; <strong>Tuntas:</strong> ≥ 75</p>
+          <p><strong>Nilai Rapor:</strong> (NA Sumatif + NA SAS) ÷ 2</p>
+          <p><strong>NA SAS:</strong> {isKelas6 ? "(Nilai Praktik + Nilai Tes) ÷ 2" : "Nilai Tes SAS"}</p>
+          <p><strong>Predikat:</strong> A (90-100), B (80-89), C (75-79), D (&lt;75) &nbsp;|&nbsp; <strong>Tuntas:</strong> ≥ 75</p>
         </div>
       </div>
 
@@ -198,15 +203,19 @@ export function Recap() {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 dark:bg-slate-700 sticky top-0 z-10">
               <tr className="border-b border-gray-200 dark:border-slate-600">
-                <th rowSpan={2} className="p-2 font-semibold text-xs border-r border-gray-200 dark:border-slate-600">#</th>
-                <th rowSpan={2} onClick={() => requestSort('name')} className="p-2 text-left font-semibold text-xs cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors border-r border-gray-200 dark:border-slate-600">
+                <th rowSpan={2} className="p-2 text-center border-r border-gray-200 dark:border-slate-600 text-[10px] w-10">No</th>
+                <th rowSpan={2} onClick={() => requestSort('name')} className="p-2 text-left border-r border-gray-200 dark:border-slate-600 text-[10px] cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors group">
                   <div className="flex items-center gap-1.5">
-                    Nama {getSortIcon('name')}
+                    Nama Siswa {getSortIcon('name')}
                   </div>
                 </th>
-                <th rowSpan={2} className="p-2 font-semibold text-[10px] text-center border-r border-gray-200 dark:border-slate-600 bg-emerald-50 dark:bg-emerald-900/10">NA Sumatif<br/>Lingkup Materi</th>
-                <th rowSpan={2} className="p-2 font-semibold text-[10px] text-center border-r border-gray-200 dark:border-slate-600 bg-amber-50 dark:bg-amber-900/10">Praktik</th>
-                <th colSpan={3} className="p-2 font-semibold text-[10px] text-center border-r border-gray-200 dark:border-slate-600 bg-blue-50 dark:bg-blue-900/10 text-blue-700 dark:text-blue-300">Sumatif Akhir Semester (SAS)</th>
+                <th rowSpan={2} onClick={() => requestSort('avgW')} className="p-2 font-semibold text-[10px] text-center border-r border-gray-200 dark:border-slate-600 cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors">
+                  <div className="flex items-center justify-center gap-1.5">
+                    NA Sumatif {getSortIcon('avgW')}
+                  </div>
+                </th>
+                {isKelas6 && <th rowSpan={2} className="p-2 font-semibold text-[10px] border-r border-gray-200 dark:border-slate-600">Nilai Praktik</th>}
+                <th colSpan={2} className="p-1 font-bold text-[10px] text-center border-r border-gray-200 dark:border-slate-600 bg-blue-50/50 dark:bg-blue-900/10">SAS (Sumatif Akhir Semester)</th>
                 <th rowSpan={2} onClick={() => requestSort('raport')} className="p-2 font-semibold text-[10px] text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors bg-primary-50/30 border-r border-gray-200 dark:border-slate-600 text-primary-700 dark:text-primary-300">
                   <div className="flex items-center justify-center gap-1.5">
                     Nilai Rapor {getSortIcon('raport')}
@@ -217,10 +226,9 @@ export function Recap() {
                 <th rowSpan={2} className="p-2 font-semibold text-[10px] text-center">Status</th>
               </tr>
               <tr className="bg-gray-50/50 dark:bg-slate-700/50">
-                <th className="p-1 font-bold text-[9px] text-center border-r border-gray-200 dark:border-slate-600">Non Tes</th>
                 <th className="p-1 font-bold text-[9px] text-center border-r border-gray-200 dark:border-slate-600">Tes</th>
-                <th onClick={() => requestSort('sas')} className="p-1 font-bold text-[9px] text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors border-r border-gray-200 dark:border-slate-600 text-blue-600 dark:text-blue-400">
-                   NA SAS {getSortIcon('sas')}
+                <th onClick={() => requestSort('naSas')} className="p-1 font-bold text-[9px] text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors border-r border-gray-200 dark:border-slate-600 text-blue-600 dark:text-blue-400">
+                   NA SAS {getSortIcon('naSas')}
                 </th>
               </tr>
             </thead>
@@ -230,8 +238,7 @@ export function Recap() {
                   <td className="p-2 text-center text-xs border-r border-gray-100 dark:border-slate-800">{i + 1}</td>
                   <td className="p-2 font-medium text-xs border-r border-gray-100 dark:border-slate-800">{r.name}</td>
                   <td className="p-2 text-center text-xs border-r border-gray-100 dark:border-slate-800 font-bold text-emerald-600 dark:text-emerald-400">{r.avgW}</td>
-                  <td className="p-2 text-center text-xs border-r border-gray-100 dark:border-slate-800">{r.praktik}</td>
-                  <td className="p-2 text-center text-xs border-r border-gray-100 dark:border-slate-800">{r.nonTes}</td>
+                  {isKelas6 && <td className="p-2 text-center text-xs border-r border-gray-100 dark:border-slate-800">{r.praktik}</td>}
                   <td className="p-2 text-center text-xs border-r border-gray-100 dark:border-slate-800">{r.tes}</td>
                   <td className="p-2 text-center text-xs border-r border-gray-100 dark:border-slate-800 font-bold text-blue-600 dark:text-blue-400">{r.naSas}</td>
                   <td className="p-2 text-center font-black text-xs border-r border-gray-100 dark:border-slate-800 text-primary-600 dark:text-primary-400">{r.raport}</td>
