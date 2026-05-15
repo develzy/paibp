@@ -24,8 +24,9 @@ export function Recap() {
     if (!sems.length) return null;
     let totalSum = 0, totalCount = 0;
     sems.forEach((sem) => {
-      const nw = sem.weeks || 20;
-      for (let i = 1; i <= nw; i++) {
+      const start = semester === 1 ? 1 : 6;
+      const end = semester === 1 ? 5 : 10;
+      for (let i = start; i <= end; i++) {
         const v = sem['m' + i];
         if (v !== '' && v !== undefined && v !== null) { totalSum += +v; totalCount++; }
       }

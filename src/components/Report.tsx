@@ -84,19 +84,17 @@ export function Report() {
     
     function semAvg(sem: any) {
       if (!sem) return '-';
-      const nw = sem.weeks || 20;
+      const start = semester === 1 ? 1 : 6;
+      const end = semester === 1 ? 5 : 10;
       let sum = 0, cnt = 0;
-      for (let i = 1; i <= nw; i++) {
+      for (let i = start; i <= end; i++) {
         const v = sem['m' + i];
         if (v !== '' && v !== undefined && v !== null) { sum += +v; cnt++; }
       }
       return cnt > 0 ? (sum / cnt).toFixed(1) : '-';
     }
     
-    const avgSem1 = semAvg(sem1);
-    const avgSem2 = semAvg(sem2);
-    
-    const curAvg = semester === 1 ? avgSem1 : avgSem2;
+    const avgW = semAvg(semester === 1 ? sem1 : sem2);
 
     // Auto-Description Logic
     let autoDesc = "";
@@ -113,7 +111,7 @@ export function Report() {
     }
 
     return {
-      avgSem1, avgSem2, avgW, sas, raport, praktik, asaj, isK6,
+      avgW, sas, raport, praktik, asaj, isK6,
       desc: autoDesc
     };
   };
@@ -418,13 +416,11 @@ export function Report() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                <tr><td className="p-4">1</td><td className="p-4">Rata-rata Nilai Semester 1</td><td className="p-4 text-center font-bold">{data.avgSem1}</td><td className="p-4 text-center">{data.avgSem1 !== '-' ? getPred(+data.avgSem1) : '-'}</td></tr>
-                <tr><td className="p-4">2</td><td className="p-4">Rata-rata Nilai Semester 2</td><td className="p-4 text-center font-bold">{data.avgSem2}</td><td className="p-4 text-center">{data.avgSem2 !== '-' ? getPred(+data.avgSem2) : '-'}</td></tr>
-                <tr><td className="p-4">3</td><td className="p-4">NA Sumatif Lingkup Materi</td><td className="p-4 text-center font-bold">{data.avgW?.toFixed(1) || '-'}</td><td className="p-4 text-center">{data.avgW ? getPred(data.avgW) : '-'}</td></tr>
-                <tr><td className="p-4">4</td><td className="p-4">Sumatif Akhir Semester (SAS)</td><td className="p-4 text-center font-bold">{data.sas || '-'}</td><td className="p-4 text-center">{data.sas ? getPred(+data.sas) : '-'}</td></tr>
-                <tr className="bg-primary-50/30 dark:bg-primary-900/10"><td className="p-4 font-bold text-primary-700 dark:text-primary-400">5</td><td className="p-4 font-bold text-primary-700 dark:text-primary-400">NILAI AKHIR RAPORT</td><td className="p-4 text-center font-extrabold text-primary-700 dark:text-primary-400">{data.raport?.toFixed(1) || '-'}</td><td className="p-4 text-center font-bold text-primary-700 dark:text-primary-400">{data.raport ? getPred(+data.raport) : '-'}</td></tr>
-                <tr><td className="p-4">6</td><td className="p-4">Penilaian Praktik Keagamaan</td><td className="p-4 text-center font-bold">{data.praktik}</td><td className="p-4 text-center">{data.praktik !== '-' ? getPred(+data.praktik) : '-'}</td></tr>
-                {data.isK6 && <tr><td className="p-4">7</td><td className="p-4">Asesmen Sumatif Akhir Jenjang</td><td className="p-4 text-center font-bold">{data.asaj}</td><td className="p-4 text-center">{data.asaj !== '-' ? getPred(+data.asaj) : '-'}</td></tr>}
+                <tr><td className="p-4">1</td><td className="p-4">NA Sumatif Lingkup Materi</td><td className="p-4 text-center font-bold">{data.avgW?.toFixed(1) || '-'}</td><td className="p-4 text-center">{data.avgW ? getPred(data.avgW) : '-'}</td></tr>
+                <tr><td className="p-4">2</td><td className="p-4">Sumatif Akhir Semester (SAS)</td><td className="p-4 text-center font-bold">{data.sas || '-'}</td><td className="p-4 text-center">{data.sas ? getPred(+data.sas) : '-'}</td></tr>
+                <tr className="bg-primary-50/30 dark:bg-primary-900/10"><td className="p-4 font-bold text-primary-700 dark:text-primary-400">3</td><td className="p-4 font-bold text-primary-700 dark:text-primary-400">NILAI AKHIR RAPORT</td><td className="p-4 text-center font-extrabold text-primary-700 dark:text-primary-400">{data.raport?.toFixed(1) || '-'}</td><td className="p-4 text-center font-bold text-primary-700 dark:text-primary-400">{data.raport ? getPred(+data.raport) : '-'}</td></tr>
+                <tr><td className="p-4">4</td><td className="p-4">Penilaian Praktik Keagamaan</td><td className="p-4 text-center font-bold">{data.praktik}</td><td className="p-4 text-center">{data.praktik !== '-' ? getPred(+data.praktik) : '-'}</td></tr>
+                {data.isK6 && <tr><td className="p-4">5</td><td className="p-4">Asesmen Sumatif Akhir Jenjang</td><td className="p-4 text-center font-bold">{data.asaj}</td><td className="p-4 text-center">{data.asaj !== '-' ? getPred(+data.asaj) : '-'}</td></tr>}
               </tbody>
             </table>
           </div>

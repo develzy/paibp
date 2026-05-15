@@ -11,7 +11,7 @@ export function WeeklyScores() {
   const store = useStore();
   const [classId, setClassId] = useState("");
   const [semester, setSemester] = useState<number>(1);
-  const [weeksCount] = useState<number>(10);
+  const weeksCount = 5; // Show 5 chapters per semester
   const [showImport, setShowImport] = useState(false);
   const [search, setSearch] = useState("");
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' | null }>({ key: 'name', direction: 'asc' });
@@ -40,7 +40,9 @@ export function WeeklyScores() {
           
           const getAvg = (w: any) => {
             let sum = 0, cnt = 0;
-            for (let i = 1; i <= weeksCount; i++) {
+            const start = semester === 1 ? 1 : 6;
+            const end = semester === 1 ? 5 : 10;
+            for (let i = start; i <= end; i++) {
               const v = w['m' + i];
               if (v !== '' && v !== undefined && v !== null) { sum += +v; cnt++; }
             }
@@ -101,12 +103,14 @@ export function WeeklyScores() {
     if (!classId) return toast.error('Pilih kelas terlebih dahulu');
     const cls = store.classes.find(c => c.id === classId);
     
+    const start = semester === 1 ? 1 : 6;
+    const end = semester === 1 ? 5 : 10;
     const data = students.map(s => {
-      const w = store.weeklyScores.find(x => x.studentId === s.id && x.classId === classId && x.semester === semester) || {} as any;
-      const row: any = { 'Nama': s.name, 'NIS': s.nis };
+      const sc = store.weeklyScores.find(x => x.studentId === s.id && x.classId === classId && x.semester === semester) || {} as any;
+      let row: any = { 'Nama': s.name, 'NIS': s.nis };
       let sum = 0, cnt = 0;
-      for (let i = 1; i <= weeksCount; i++) {
-        const v = w['m' + i];
+      for (let i = start; i <= end; i++) {
+        const v = sc['m' + i];
         row['Sumatif ' + i] = (v !== '' && v !== undefined && v !== null) ? v : '-';
         if (v !== '' && v !== undefined && v !== null) { sum += +v; cnt++; }
       }
@@ -124,9 +128,11 @@ export function WeeklyScores() {
     if (!classId) return toast.error('Pilih kelas terlebih dahulu');
     const cls = store.classes.find(c => c.id === classId);
     
+    const start = semester === 1 ? 1 : 6;
+    const end = semester === 1 ? 5 : 10;
     const data = students.map(s => {
-      const row: any = { 'Nama': s.name, 'NIS': s.nis };
-      for (let i = 1; i <= weeksCount; i++) row['Sumatif ' + i] = '';
+      let row: any = { 'Nama': s.name, 'NIS': s.nis };
+      for (let i = start; i <= end; i++) row['Sumatif ' + i] = '';
       return row;
     });
     
@@ -154,14 +160,16 @@ export function WeeklyScores() {
         let count = 0;
         store.setWeeklyScores((prev) => {
           let next = [...prev];
+          const start = semester === 1 ? 1 : 6;
+          const end = semester === 1 ? 5 : 10;
           data.forEach((row: any) => {
             const student = students.find(s => s.nis === String(row['NIS'] || '') || s.name === row['Nama']);
             if (student) {
               let existingIndex = next.findIndex(w => w.studentId === student.id && w.classId === classId && w.semester === semester);
-              let w = existingIndex >= 0 ? { ...next[existingIndex] } : { studentId: student.id, classId, semester, weeks: weeksCount } as any;
+              let w = existingIndex >= 0 ? { ...next[existingIndex] } : { studentId: student.id, classId, semester } as any;
               
               let updated = false;
-              for (let i = 1; i <= weeksCount; i++) {
+              for (let i = start; i <= end; i++) {
                 const val = row['Sumatif ' + i];
                 if (val !== undefined && val !== '-' && val !== '') {
                   w[`m${i}`] = Number(val);
@@ -239,11 +247,6 @@ export function WeeklyScores() {
             <option value="2">Semester 2</option>
           </select>
         </div>
-        <div>
-          <div className="px-3 py-2 rounded-xl border border-gray-200 dark:border-slate-600 dark:bg-slate-800 dark:text-white text-sm font-medium">
-            10 Sumatif (Lingkup Materi)
-          </div>
-        </div>
         <button onClick={exportWeekly} className="px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-medium flex items-center gap-1.5 shadow-sm transition text-sm">
           <Download size={15} /> Export
         </button>
@@ -273,54 +276,47 @@ export function WeeklyScores() {
           <p className="p-6 text-center text-gray-400 text-sm">Belum ada siswa di kelas ini</p>
         ) : (
           <table className="w-full text-sm">
-            <thead className="sticky top-0 bg-gray-50 dark:bg-slate-700 z-10 shadow-sm">
+            <thead>
               <tr>
-                <th rowSpan={2} onClick={() => requestSort('name')} className="p-2 text-left min-w-[150px] sticky left-0 bg-gray-50 dark:bg-slate-700 font-semibold text-xs cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors group border-r border-gray-200 dark:border-slate-600">
-                  <div className="flex items-center gap-1.5">
-                    Nama {getSortIcon('name')}
-                  </div>
+                <th onClick={() => requestSort('name')} className="p-2 text-left font-semibold text-xs cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700 transition sticky left-0 bg-white dark:bg-slate-800 z-10 w-[150px]">
+                  <div className="flex items-center gap-1.5">Nama {getSortIcon('name')}</div>
                 </th>
-                <th colSpan={10} className="p-2 text-center font-bold text-xs bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border-b border-gray-200 dark:border-slate-600">
-                  Sumatif Akhir Lingkup Materi (Wajib)
+                {Array.from({ length: 5 }).map((_, i) => {
+                  const babIdx = semester === 1 ? i : i + 5;
+                  return (
+                    <th key={i} className="p-2 font-semibold text-center border-l border-gray-100 dark:border-slate-700 bg-gray-50/50 dark:bg-slate-800/50">
+                      <div className="flex flex-col items-center">
+                        <span className="text-[10px] text-primary-600 dark:text-primary-400 font-bold mb-0.5">SUMATIF {babIdx + 1}</span>
+                        <span className="text-[8px] font-normal text-gray-500 dark:text-gray-400 leading-tight max-w-[80px]">
+                          {[
+                            "Belajar Al-Qur’an & Hadis",
+                            "Allah Maha Segalanya",
+                            "Hidup Damai Memaafkan",
+                            "Hukum Halal & Haram",
+                            "Jasa Khulafaurrasyidin",
+                            "Surah Al-A'la",
+                            "Indahnya Ketetapan Allah",
+                            "Peduli Lingkungan",
+                            "Mengamalkan Puasa Sunah",
+                            "Khalifah Usman & Ali"
+                          ][babIdx]}
+                        </span>
+                      </div>
+                    </th>
+                  );
+                })}
+                <th onClick={() => requestSort('avg')} className="p-2 text-center font-semibold text-xs cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700 transition bg-primary-50/30 dark:bg-primary-900/10">
+                  <div className="flex items-center justify-center gap-1.5">Rata-rata {getSortIcon('avg')}</div>
                 </th>
-                <th rowSpan={2} onClick={() => requestSort('avg')} className="p-2 min-w-[80px] font-semibold text-[10px] text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors bg-primary-50/20 border-l border-gray-200 dark:border-slate-600">
-                  <div className="flex items-center justify-center gap-1.5">
-                    NA Sumatif {getSortIcon('avg')}
-                  </div>
-                </th>
-              </tr>
-              <tr>
-                {[
-                  "Sumatif 1", "Sumatif 2", "Sumatif 3", "Sumatif 4", "Sumatif 5",
-                  "Sumatif 6", "Sumatif 7", "Sumatif 8", "Sumatif 9", "Sumatif 10"
-                ].map((s, i) => (
-                  <th key={i} className="p-1 text-[9px] min-w-[85px] font-bold text-center border-x border-gray-100 dark:border-slate-600 bg-white dark:bg-slate-800">
-                    <div className="flex flex-col gap-0.5">
-                      <span className="text-primary-600 dark:text-primary-400">{s}</span>
-                      <span className="text-[8px] font-normal text-gray-500 dark:text-gray-400 leading-tight">
-                        {[
-                          "Belajar Al-Qur’an & Hadis",
-                          "Allah Maha Segalanya",
-                          "Hidup Damai Memaafkan",
-                          "Hukum Halal & Haram",
-                          "Jasa Khulafaurrasyidin",
-                          "Surah Al-A'la",
-                          "Indahnya Ketetapan Allah",
-                          "Peduli Lingkungan",
-                          "Mengamalkan Puasa Sunah",
-                          "Khalifah Usman & Ali"
-                        ][i]}
-                      </span>
-                    </div>
-                  </th>
-                ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
               {students.map(s => {
                 const w = store.weeklyScores.find(x => x.studentId === s.id && x.classId === classId && x.semester === semester) || {} as any;
                 let sum = 0, cnt = 0;
-                for (let i = 1; i <= weeksCount; i++) {
+                const start = semester === 1 ? 1 : 6;
+                const end = semester === 1 ? 5 : 10;
+                for (let i = start; i <= end; i++) {
                   const v = w['m' + i];
                   if (v !== '' && v !== undefined && v !== null) { sum += +v; cnt++; }
                 }
@@ -329,17 +325,20 @@ export function WeeklyScores() {
                 return (
                   <tr key={s.id} className="dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-700/30 transition">
                     <td className="p-2 font-medium text-xs sticky left-0 bg-white dark:bg-slate-800">{s.name}</td>
-                    {Array.from({ length: weeksCount }).map((_, i) => (
-                      <td key={i} className="p-0.5 text-center align-middle">
-                        <input 
-                          type="number" min="0" max="100" 
-                          value={w['m' + (i + 1)] ?? ''} 
-                          onChange={(e) => handleScoreChange(s.id, i + 1, e.target.value)} 
-                          className="w-[38px] text-center mx-auto block rounded-md border border-gray-200 dark:border-slate-600 dark:bg-slate-800 dark:text-white py-0.5 outline-none focus:ring-1 focus:ring-primary-500 text-[11px]"
-                          style={{ WebkitAppearance: 'none', MozAppearance: 'textfield' }}
-                        />
-                      </td>
-                    ))}
+                    {Array.from({ length: 5 }).map((_, i) => {
+                      const weekIdx = semester === 1 ? i + 1 : i + 6;
+                      return (
+                        <td key={i} className="p-0.5 text-center align-middle">
+                          <input 
+                            type="number" min="0" max="100" 
+                            value={w['m' + weekIdx] ?? ''} 
+                            onChange={(e) => handleScoreChange(s.id, weekIdx, e.target.value)} 
+                            className="w-[38px] text-center mx-auto block rounded-md border border-gray-200 dark:border-slate-600 dark:bg-slate-800 dark:text-white py-0.5 outline-none focus:ring-1 focus:ring-primary-500 text-[11px]"
+                            style={{ WebkitAppearance: 'none', MozAppearance: 'textfield' }}
+                          />
+                        </td>
+                      );
+                    })}
                     <td className="p-2 text-center font-bold text-primary-600 text-[11px]">{avg}</td>
                   </tr>
                 );
