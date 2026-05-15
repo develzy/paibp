@@ -23,6 +23,7 @@ import { Recap } from "@/components/Recap";
 import { Report } from "@/components/Report";
 import { Alumni } from "@/components/Alumni";
 import { Profile } from "@/components/Profile";
+import { About } from "@/components/About";
 import CloudSync from "@/components/CloudSync";
 
 const PAGES = [
@@ -37,6 +38,7 @@ const PAGES = [
   {id:'alumni', icon: GraduationCap, label:'Siswa Lulusan'},
   {id:'recap', icon: BarChart3, label:'Rekap Nilai'},
   {id:'report', icon: Printer, label:'Raport Digital'},
+  {id:'about', icon: Info, label:'Tentang'},
 ];
 
 export default function Home() {
@@ -299,7 +301,8 @@ function MainApp({ session, setSession }: { session: any, setSession: any }) {
       case 'recap': return <Recap />;
       case 'report': return <Report />;
       case 'profile': return <Profile />;
-      default: return null;
+      case 'about': return <About />;
+      default: return <Dashboard />;
     }
   };
 
@@ -390,6 +393,9 @@ function MainApp({ session, setSession }: { session: any, setSession: any }) {
                   </div>
                   <button onClick={() => { navigate('profile'); setProfileOpen(false); }} className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-primary-50 dark:hover:bg-primary-900/20 hover:text-primary-600 transition">
                     <Settings size={17} /> Pengaturan Profil
+                  </button>
+                  <button onClick={() => { navigate('about'); setProfileOpen(false); }} className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-primary-50 dark:hover:bg-primary-900/20 hover:text-primary-600 transition">
+                    <Info size={17} /> Tentang
                   </button>
                   <div className="h-px bg-gray-50 dark:bg-slate-800/50 my-1"></div>
                   <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 transition">
