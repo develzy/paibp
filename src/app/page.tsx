@@ -89,150 +89,66 @@ export default function Home() {
     }
   };
 
-  const [showAbout, setShowAbout] = useState(false);
-
   if (!isClient) return null;
 
   if (!session) {
-    if (showAbout) {
-      return (
-        <div className="min-h-screen w-full bg-slate-50 dark:bg-slate-950 p-4 md:p-8">
-          <button 
-            onClick={() => setShowAbout(false)}
-            className="mb-8 px-6 py-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl font-bold text-sm shadow-sm hover:shadow-md transition-all flex items-center gap-2"
-          >
-            ← Kembali ke Login
-          </button>
-          <About />
-        </div>
-      );
-    }
-
     return (
-      <div className="min-h-screen w-full bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-4">
-        <div className="grid lg:grid-cols-2 gap-12 max-w-6xl w-full items-start">
-          {/* Left Side: Info */}
-          <div className="hidden lg:flex flex-col gap-6 py-12">
-            <h2 className="text-3xl font-black text-gray-900 dark:text-white font-serif leading-tight">
-              Sistem Penilaian <br/> <span className="text-primary-500">PAIBP Terintegrasi</span>
-            </h2>
-            <div className="space-y-3 w-full">
-              {[
-                { 
-                  id: 1, 
-                  title: 'AI Integration', 
-                  icon: Star, 
-                  content: 'Aplikasi ini terintegrasi dengan AI Pribadi yang dibuat oleh developer' 
-                },
-                { 
-                  id: 2, 
-                  title: 'Cloud Sync', 
-                  icon: Wifi, 
-                  content: 'Sinkronisasi data otomatis ke Cloudflare D1 untuk akses multi-perangkat.' 
-                },
-                { 
-                  id: 3, 
-                  title: 'Raport Digital', 
-                  icon: Printer, 
-                  content: 'Cetak raport digital format PDF dengan satu klik, rapi dan profesional.' 
-                },
-                { 
-                  id: 4, 
-                  title: 'Informasi Lengkap', 
-                  icon: Info, 
-                  content: (
-                    <button 
-                      onClick={() => setShowAbout(true)}
-                      className="text-primary-600 font-bold hover:underline"
-                    >
-                      Klik untuk melihat detail aplikasi & FAQ
-                    </button>
-                  )
-                },
-                { 
-                  id: 5, 
-                  title: 'Dukung Aplikasi Ini', 
-                  icon: Shield, 
-                  content: (
-                    <div className="flex flex-col gap-2">
-                      <p className="text-[10px] text-gray-500 dark:text-gray-400">Hubungi kami untuk bantuan teknis atau saran pengembangan.</p>
-                      <a href="https://wa.me/6285879584257" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-primary-600 font-bold hover:underline">
-                        Contact Support via WhatsApp
-                      </a>
-                    </div>
-                  )
-                },
-              ].map(faq => (
-                <div key={faq.id} className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-md border border-gray-200/50 dark:border-slate-700/50 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all">
-                  <div className="flex gap-4">
-                    <div className="w-10 h-10 bg-blue-50 dark:bg-blue-900/30 rounded-xl flex items-center justify-center shrink-0">
-                      <faq.icon size={20} className="text-blue-600 dark:text-blue-400" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold text-gray-900 dark:text-white">{faq.title}</p>
-                      <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">{faq.content}</div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+      <div className="min-h-screen w-full bg-slate-50 dark:bg-slate-950 flex flex-col lg:flex-row overflow-hidden">
+        {/* Left Side: About / FAQ (Scrollable) */}
+        <div className="flex-1 overflow-y-auto bg-white/30 dark:bg-slate-900/30 backdrop-blur-sm border-r border-gray-100 dark:border-slate-800">
+          <div className="max-w-3xl mx-auto py-12 px-6">
+            <About />
           </div>
+        </div>
 
-          {/* Right Side: Login Form */}
-          <div className="flex flex-col items-center">
-            <div className="glass rounded-[2.5rem] p-10 w-full max-w-md shadow-2xl border border-white/50 dark:border-slate-700/50">
-              <div className="text-center mb-10">
-                <img src="./logo.png" alt="Logo PAI" className="w-20 h-20 mx-auto rounded-2xl shadow-xl mb-6 object-cover bg-white" />
-                <h1 className="font-bold text-gray-900 dark:text-white text-2xl tracking-tight">Login Portal</h1>
-                <p className="text-gray-500 dark:text-gray-400 mt-2 text-sm">PAIBP Assessment System v26.0.9</p>
-              </div>
-              <form onSubmit={handleLogin} className="space-y-6">
-                <div>
-                  <label className="block text-xs font-bold tracking-wide text-gray-600 dark:text-gray-400 mb-2 uppercase">Username</label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <User size={18} className="text-gray-400" />
-                    </div>
-                    <input 
-                      type="text" 
-                      value={username} 
-                      onChange={(e) => setUsername(e.target.value)} 
-                      className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 dark:bg-slate-900/50 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none transition text-sm shadow-sm" 
-                      placeholder="Username" 
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-xs font-bold tracking-wide text-gray-600 dark:text-gray-400 mb-2 uppercase">Password</label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Lock size={18} className="text-gray-400" />
-                    </div>
-                    <input 
-                      type="password" 
-                      value={password} 
-                      onChange={(e) => setPassword(e.target.value)} 
-                      className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 dark:bg-slate-900/50 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none transition text-sm shadow-sm" 
-                      placeholder="Password" 
-                    />
-                  </div>
-                </div>
-                <button 
-                  type="submit" 
-                  disabled={loading}
-                  className="w-full py-4 bg-gradient-to-r from-primary-600 to-primary-500 text-white rounded-xl font-bold shadow-lg shadow-primary-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50"
-                >
-                  {loading ? 'Logging in...' : 'Masuk ke Sistem'}
-                </button>
-              </form>
-              <button 
-                onClick={() => setShowAbout(true)}
-                className="w-full mt-6 py-3 border border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 rounded-xl text-xs font-bold hover:bg-gray-50 dark:hover:bg-slate-800 transition lg:hidden"
-              >
-                Lihat Informasi Aplikasi & FAQ
-              </button>
-              <p className="mt-8 text-center text-xs text-gray-400">© {new Date().getFullYear()} DEVELZY — Smart Tech</p>
+        {/* Right Side: Login Form (Fixed/Centered on right) */}
+        <div className="w-full lg:w-[450px] flex items-center justify-center p-6 bg-slate-50 dark:bg-slate-950 shadow-2xl z-10">
+          <div className="glass rounded-[2.5rem] p-10 w-full max-w-md shadow-2xl border border-white/50 dark:border-slate-700/50">
+            <div className="text-center mb-10">
+              <img src="./logo.png" alt="Logo PAI" className="w-20 h-20 mx-auto rounded-2xl shadow-xl mb-6 object-cover bg-white" />
+              <h1 className="font-bold text-gray-900 dark:text-white text-2xl tracking-tight">Login Portal</h1>
+              <p className="text-gray-500 dark:text-gray-400 mt-2 text-sm">PAIBP Assessment System v26.0.9</p>
             </div>
+            <form onSubmit={handleLogin} className="space-y-6">
+              <div>
+                <label className="block text-xs font-bold tracking-wide text-gray-600 dark:text-gray-400 mb-2 uppercase">Username</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <User size={18} className="text-gray-400" />
+                  </div>
+                  <input 
+                    type="text" 
+                    value={username} 
+                    onChange={(e) => setUsername(e.target.value)} 
+                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 dark:bg-slate-900/50 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none transition text-sm shadow-sm" 
+                    placeholder="Username" 
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-bold tracking-wide text-gray-600 dark:text-gray-400 mb-2 uppercase">Password</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Lock size={18} className="text-gray-400" />
+                  </div>
+                  <input 
+                    type="password" 
+                    value={password} 
+                    onChange={(e) => setPassword(e.target.value)} 
+                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 dark:bg-slate-900/50 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none transition text-sm shadow-sm" 
+                    placeholder="Password" 
+                  />
+                </div>
+              </div>
+              <button 
+                type="submit" 
+                disabled={loading}
+                className="w-full py-4 bg-gradient-to-r from-primary-600 to-primary-500 text-white rounded-xl font-bold shadow-lg shadow-primary-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50"
+              >
+                {loading ? 'Logging in...' : 'Masuk ke Sistem'}
+              </button>
+            </form>
+            <p className="mt-8 text-center text-xs text-gray-400">© {new Date().getFullYear()} DEVELZY — Smart Tech</p>
           </div>
         </div>
       </div>
@@ -467,7 +383,7 @@ function MainApp({ session, setSession }: { session: any, setSession: any }) {
                 )}
               </div>
 
-              {PAGES.filter(p => !['dashboard', 'classes', 'recap', 'report'].includes(p.id) && !(p as any).parent).map(p => (
+              {PAGES.filter(p => !['dashboard', 'classes', 'recap', 'report', 'about'].includes(p.id) && !(p as any).parent).map(p => (
                 <button key={p.id} onClick={() => navigate(p.id)} className={`sidebar-item flex items-center gap-3 w-full px-3 py-2 text-sm font-medium rounded-xl border border-transparent transition-all ${activePage === p.id ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-lg shadow-primary-500/30' : 'text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-slate-800'}`}>
                   <p.icon size={18} className={activePage === p.id ? 'text-white' : 'text-gray-400 group-hover:text-primary-500'} /> {p.label}
                 </button>
@@ -480,6 +396,15 @@ function MainApp({ session, setSession }: { session: any, setSession: any }) {
                   <p.icon size={18} className={activePage === p.id ? 'text-white' : 'text-gray-400 group-hover:text-primary-500'} /> {p.label}
                 </button>
               ))}
+
+              <div className="pt-8 mt-auto">
+                <button 
+                  onClick={() => navigate('about')} 
+                  className={`sidebar-item flex items-center gap-3 w-full px-3 py-2 text-sm font-medium rounded-xl border border-transparent transition-all ${activePage === 'about' ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-lg shadow-primary-500/30' : 'text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-slate-800'}`}
+                >
+                  <Info size={18} className={activePage === 'about' ? 'text-white' : 'text-gray-400 group-hover:text-primary-500'} /> Tentang
+                </button>
+              </div>
             </div>
           </div>
         </aside>
