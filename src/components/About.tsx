@@ -183,9 +183,17 @@ export function About() {
       title: "Informasi Pengembang",
       icon: UserCircle2,
       content: (
-        <p className="text-sm font-bold text-primary-600 dark:text-primary-400">
-          PAIBP Assessment Smart System dikembangkan dan dikelola oleh Develzy.AI sebagai bagian dari pengembangan solusi teknologi pendidikan yang berfokus pada efisiensi administrasi sekolah dan transformasi digital pembelajaran di Indonesia.
-        </p>
+        <div className="space-y-4 text-sm leading-relaxed text-gray-600 dark:text-gray-300">
+          <p>
+            PAIBP Assessment Smart System dikembangkan secara mandiri sebagai bagian dari upaya mendukung digitalisasi administrasi pendidikan, khususnya dalam pengelolaan pembelajaran Pendidikan Agama Islam & Budi Pekerti di lingkungan sekolah dasar.
+          </p>
+          <p>
+            Pengembangan aplikasi ini dilakukan oleh pengajar PAIBP sekaligus tenaga administrasi SDN Kalisalak 01 Kabupaten Tegal, berdasarkan pengalaman langsung dalam pelaksanaan administrasi pembelajaran dan kebutuhan pengelolaan data akademik di lingkungan sekolah.
+          </p>
+          <p>
+            Sistem dirancang untuk membantu meningkatkan efisiensi kerja, ketepatan pengolahan data, serta mendukung transformasi administrasi pendidikan yang lebih modern, terstruktur, dan adaptif terhadap perkembangan teknologi.
+          </p>
+        </div>
       )
     },
     {
