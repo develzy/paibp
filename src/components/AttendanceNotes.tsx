@@ -24,10 +24,18 @@ export function AttendanceNotes() {
   }, [isValidClass, store.students, classId, search]);
 
   const callGemini = async (studentName: string, s: number, i: number, a: number) => {
-    const prompt = `Anda adalah seorang wali kelas di sekolah dasar (SD) di Indonesia. 
-    Buatkan 1 kalimat saran/catatan wali kelas yang bijak, sopan, dan memotivasi untuk raport siswa bernama "${studentName}".
-    Data ketidakhadiran: Sakit: ${s}, Izin: ${i}, Alpa: ${a}.
-    Berikan jawaban HANYA berupa 1 kalimat saran saja tanpa awalan apapun.`;
+    const prompt = `Anda adalah seorang wali kelas SD di Indonesia. 
+    Buatkan 1 kalimat saran raport untuk "${studentName}" berdasarkan data absensi berikut:
+    - Sakit: ${s} hari
+    - Izin: ${i} hari
+    - Tanpa Keterangan (Alpa): ${a} hari
+    
+    INSTRUKSI KHUSUS:
+    1. Jika Alpa (Tanpa Keterangan) > 0, berikan saran tegas namun sopan tentang pentingnya kedisiplinan kehadiran.
+    2. Jika Sakit atau Izin cukup banyak (> 5 hari), berikan semangat agar tetap semangat belajar dan mendoakan kesehatan.
+    3. Jika absensi bersih (semua 0), puji kedisiplinannya dalam bersekolah.
+    4. Selalu akhiri dengan kalimat motivasi belajar yang relevan.
+    5. Jawab HANYA 1 kalimat saran saja, tanpa kata pengantar atau tanda kutip.`;
 
     try {
       const res = await fetch('/api/ai/generate', {
@@ -36,10 +44,10 @@ export function AttendanceNotes() {
         body: JSON.stringify({ prompt })
       });
       const data = await res.json();
-      return data.result || "Tingkatkan prestasimu dan pertahankan semangat belajarmu.";
+      return data.result || "Tingkatkan kedisiplinan dan pertahankan semangat belajarmu.";
     } catch (err) {
       console.error(err);
-      return "Tingkatkan prestasimu dan pertahankan semangat belajarmu.";
+      return "Teruslah belajar dengan rajin dan tingkatkan prestasimu.";
     }
   };
 
@@ -51,17 +59,29 @@ export function AttendanceNotes() {
   };
 
   const generateAllAi = async () => {
-    if (!confirm('Ingin men-generate saran untuk SEMUA siswa menggunakan AI Gemini?')) return;
+    if (!confirm('Ingin men-generate saran untuk SEMUA siswa yang catatannya masih kosong?')) return;
     
     toast.loading('Sedang men-generate saran AI...', { id: 'ai-gen' });
+    let count = 0;
+    
     for (const st of students) {
       const note = store.attendanceNotes.find(n => n.studentId === st.id && n.classId === classId && n.semester === semester) || { s: 0, i: 0, a: 0, notes: '' };
+      
+      // Hanya generate jika catatan masih kosong
       if (!note.notes || note.notes.trim() === '') {
         const suggestion = await callGemini(st.name, Number(note.s || 0), Number(note.i || 0), Number(note.a || 0));
         handleUpdate(st.id, 'notes', suggestion);
+        count++;
+        // Small delay to prevent rate limit and show progress
+        await new Promise(r => setTimeout(r, 200));
       }
     }
-    toast.success('Saran AI berhasil di-generate!', { id: 'ai-gen' });
+    
+    if (count > 0) {
+      toast.success(`${count} saran AI berhasil di-generate!`, { id: 'ai-gen' });
+    } else {
+      toast.error('Semua siswa sudah memiliki catatan.', { id: 'ai-gen' });
+    }
   };
 
   const handleUpdate = (studentId: string, field: 's' | 'i' | 'a' | 'notes', val: string) => {
