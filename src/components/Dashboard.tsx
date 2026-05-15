@@ -1,12 +1,13 @@
 "use client";
 
 import { useStore } from "@/store/useStore";
-import { Users, School, TrendingUp, CheckCircle, BarChart3, PieChart } from "lucide-react";
+import { Users, School, TrendingUp, CheckCircle, BarChart3, PieChart, Filter } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export function Dashboard() {
   const store = useStore();
   const [mounted, setMounted] = useState(false);
+  const [semester, setSemester] = useState<number>(1);
 
   useEffect(() => {
     setMounted(true);
@@ -21,26 +22,26 @@ export function Dashboard() {
   const totalStudents = activeStudents.length;
   const totalClasses = filteredClasses.length;
 
-  const getWeeklyAvg = (studentId: string, classId: string) => {
-    const sems = store.weeklyScores.filter((x) => x.studentId === studentId && x.classId === classId);
-    if (!sems.length) return null;
+  const getWeeklyAvg = (studentId: string, classId: string, semId: number) => {
+    const semData = store.weeklyScores.find((x) => x.studentId === studentId && x.classId === classId && x.semester === semId);
+    if (!semData) return null;
+    
     let totalSum = 0, totalCount = 0;
-    sems.forEach((sem) => {
-      const nw = sem.weeks || 20;
-      for (let i = 1; i <= nw; i++) {
-        const v = sem['m' + i];
-        if (v !== '' && v !== undefined && v !== null) {
-          totalSum += +v;
-          totalCount++;
-        }
+    const nw = semData.weeks || 20;
+    for (let i = 1; i <= nw; i++) {
+      const v = semData['m' + i];
+      if (v !== '' && v !== undefined && v !== null) {
+        totalSum += +v;
+        totalCount++;
       }
-    });
+    }
     return totalCount > 0 ? totalSum / totalCount : null;
   };
 
   const studentScores = activeStudents.map((s) => {
-    const avgW = getWeeklyAvg(s.id, s.classId);
-    const sas = store.sasScores.find((x) => x.studentId === s.id && x.classId === s.classId);
+    const avgW = getWeeklyAvg(s.id, s.classId, semester);
+    const sas = store.sasScores.find((x) => x.studentId === s.id && x.classId === s.classId && x.semester === semester);
+    
     if (avgW === null || !sas || sas.score === '' || sas.score === undefined) return null;
     return { id: s.id, name: s.name, classId: s.classId, score: (avgW + +sas.score) / 2 };
   }).filter((s) => s !== null && s.score > 0) as any[];
@@ -61,6 +62,25 @@ export function Dashboard() {
 
   return (
     <div className="w-full max-w-6xl fade-in">
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
+        <div className="flex gap-4">
+          <div className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl shadow-sm">
+            <Filter size={16} className="text-primary-500" />
+            <select 
+              value={semester} 
+              onChange={(e) => setSemester(Number(e.target.value))}
+              className="bg-transparent text-sm font-bold outline-none dark:text-white"
+            >
+              <option value={1}>Semester 1</option>
+              <option value={2}>Semester 2</option>
+            </select>
+          </div>
+        </div>
+        <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest bg-gray-100 dark:bg-slate-800 px-3 py-1 rounded-full">
+          Live Analysis Mode: <span className="text-primary-500">Active</span>
+        </div>
+      </div>
+
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <StatCard icon={Users} label="Total Siswa" value={totalStudents} bg="bg-emerald-50 dark:bg-emerald-900/20" iconColor="text-emerald-600 dark:text-emerald-400" />
         <StatCard icon={School} label="Total Kelas" value={totalClasses} bg="bg-blue-50 dark:bg-blue-900/20" iconColor="text-blue-600 dark:text-blue-400" />
@@ -71,7 +91,7 @@ export function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="glass rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-slate-800">
           <h3 className="font-semibold mb-6 text-gray-900 dark:text-white text-sm flex items-center gap-2 font-serif">
-            <BarChart3 size={17} className="text-primary-600" /> Distribusi Nilai & Sampel Siswa
+            <BarChart3 size={17} className="text-primary-600" /> Distribusi Nilai & Sampel Siswa (Smt {semester})
           </h3>
           <div className="space-y-6">
             {ranges.map((r, idx) => {
@@ -79,10 +99,9 @@ export function Dashboard() {
               const count = studentsInRange.length;
               const w = Math.max((count / maxBar) * 100, 2);
               
-              // Get sample names: max 3 per class
               const sampleNames: string[] = [];
               filteredClasses.forEach(c => {
-                const classStudents = studentsInRange.filter(s => s.classId === c.id).slice(0, 3);
+                const classStudents = studentsInRange.filter(s => s.classId === c.id).slice(0, 2);
                 classStudents.forEach(s => sampleNames.push(`${s.name} (${c.name.split(' ')[1] || c.name})`));
               });
 

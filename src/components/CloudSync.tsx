@@ -19,7 +19,8 @@ export default function CloudSync() {
         weekly: store.weeklyScores,
         sas: store.sasScores,
         practice: store.practiceScores,
-        asaj: store.asajScores
+        asaj: store.asajScores,
+        attendance: store.attendanceNotes
       };
 
       // Save each table to D1
@@ -50,7 +51,7 @@ export default function CloudSync() {
     }, 3000); // Wait 3 seconds after last change
 
     return () => clearTimeout(timer);
-  }, [store.classes, store.students, store.weeklyScores, store.sasScores, store.practiceScores, store.asajScores]);
+  }, [store.classes, store.students, store.weeklyScores, store.sasScores, store.practiceScores, store.asajScores, store.attendanceNotes]);
 
   return (
     <div className="flex items-center gap-2 px-3 py-1 bg-white/50 dark:bg-slate-900/50 rounded-full border border-gray-200/50 dark:border-slate-700/50 shadow-sm backdrop-blur-md">

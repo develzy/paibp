@@ -20,6 +20,17 @@ export async function GET(request: NextRequest) {
     results.results.forEach((row: any) => {
       data[row.key_name] = JSON.parse(row.data_json);
     });
+
+    // Smart Merge: If app_data for classes or students is empty, pull from relational tables
+    if (!data.classes || data.classes.length === 0) {
+      const relClasses = await db.prepare('SELECT id, name, academic_year as year FROM classes').all();
+      if (relClasses.results.length > 0) data.classes = relClasses.results;
+    }
+    
+    if (!data.students || data.students.length === 0) {
+      const relStudents = await db.prepare('SELECT id, nis, nisn, name, class_id as classId FROM students').all();
+      if (relStudents.results.length > 0) data.students = relStudents.results;
+    }
     
     return NextResponse.json(data);
   } catch (error: any) {
