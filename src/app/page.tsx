@@ -292,17 +292,19 @@ export default function Home() {
                   title: 'Fitur & Keunggulan',
                   icon: Shield,
                   content: (
-                    <div className="space-y-2">
-                      <div className="grid grid-cols-1 gap-1.5">
+                    <div className="space-y-3">
+                      <p className="text-[10px] text-gray-500 dark:text-gray-400 italic px-1">PAIBP Assessment dirancang untuk memudahkan guru dalam mengelola administrasi nilai secara digital dan akurat.</p>
+                      <div className="grid grid-cols-1 gap-2">
                         {[
-                          { t: 'Otomatisasi Nilai', d: 'Perhitungan rata-rata Mingguan, SAS, & Praktik otomatis.' },
-                          { t: 'Manajemen Siswa', d: 'Database lengkap Kelas 1-6 dengan NIS & NISN.' },
-                          { t: 'Raport Instan', d: 'Generasi Raport Digital siap cetak format profesional.' },
-                          { t: 'PWA Ready', d: 'Aplikasi dapat diinstal & diakses secara offline.' },
-                          { t: 'Data Privacy', d: 'Data tersimpan lokal di browser (LocalStorage).' }
+                          { t: 'Manajemen Kelas & Siswa', d: 'Kelola data siswa per rombel dengan fitur import Excel yang cepat.' },
+                          { t: 'Analisis Nilai Otomatis', d: 'Sistem otomatis menghitung Nilai Akhir (NA) berdasarkan bobot kurikulum.' },
+                          { t: 'Raport Digital Siap Cetak', d: 'Generasi Raport PDF dan HTML sesuai standar format sekolah.' },
+                          { t: 'Dashboard Statistik', d: 'Visualisasi perkembangan nilai siswa untuk pemantauan capaian kompetensi.' },
+                          { t: 'PWA & Offline Ready', d: 'Dapat diakses tanpa internet setelah aplikasi terinstal di perangkat.' },
+                          { t: 'Sinkronisasi Cloud', d: 'Data aman tersimpan di lokal dan dapat disinkronkan ke cloud secara opsional.' }
                         ].map((item, i) => (
-                          <div key={i} className="flex gap-2.5 p-1.5 rounded-lg bg-gray-50 dark:bg-slate-900/50 border border-gray-100 dark:border-slate-700/50">
-                            <div className="w-4 h-4 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-[9px] font-bold text-primary-600 shrink-0">{i+1}</div>
+                          <div key={i} className="flex gap-2.5 p-2 rounded-xl bg-white/50 dark:bg-slate-900/50 border border-gray-100 dark:border-slate-700/50 shadow-sm hover:border-primary-200 transition-colors">
+                            <div className="w-5 h-5 rounded-lg bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-[10px] font-bold text-primary-600 shrink-0">{i+1}</div>
                             <div>
                               <p className="text-[10px] font-bold text-gray-800 dark:text-gray-200">{item.t}</p>
                               <p className="text-[9px] text-gray-500 dark:text-gray-400 leading-tight">{item.d}</p>
@@ -318,18 +320,21 @@ export default function Home() {
                   title: 'Cara Kerja Sistem',
                   icon: Target,
                   content: (
-                    <div className="space-y-1.5">
-                      {[
-                        { t: 'Offline-First Architecture', d: 'Berjalan sepenuhnya di browser tanpa perlu server pusat.' },
-                        { t: 'Local Storage Persistence', d: 'Data disimpan permanen di memori lokal browser perangkat.' },
-                        { t: 'Real-time Calculation', d: 'Algoritma menghitung bobot nilai (50:50) secara instan.' },
-                        { t: 'XLSX Processing Engine', d: 'Mengolah ribuan baris data Excel secara lokal & cepat.' }
-                      ].map((item, i) => (
-                        <div key={i} className="p-2 rounded-lg bg-blue-50/50 dark:bg-blue-900/10 border border-blue-100/50 dark:border-blue-800/20">
-                          <p className="text-[10px] font-bold text-blue-900 dark:text-blue-300 mb-0.5">{item.t}</p>
-                          <p className="text-[9px] text-blue-700 dark:text-blue-400 leading-tight">{item.d}</p>
-                        </div>
-                      ))}
+                    <div className="space-y-2">
+                      <p className="text-[10px] text-blue-800 dark:text-blue-300 font-medium px-1">Arsitektur aplikasi ini mengutamakan kecepatan dan privasi data pengguna.</p>
+                      <div className="grid grid-cols-1 gap-1.5">
+                        {[
+                          { t: 'Client-Side Processing', d: 'Semua perhitungan dilakukan langsung di perangkat Anda tanpa mengirim data ke server luar.' },
+                          { t: 'Local Storage Persistence', d: 'Data tersimpan secara permanen di memori browser (IndexedDB & LocalStorage).' },
+                          { t: 'XLSX Data Engine', d: 'Mampu memproses file Excel secara lokal untuk fitur Export/Import data dalam jumlah besar.' },
+                          { t: 'Dynamic Scoring Algorithm', d: 'Menghitung rata-rata sumatif (lingkup materi) dan SAS (tes/praktik) secara real-time.' }
+                        ].map((item, i) => (
+                          <div key={i} className="p-2.5 rounded-xl bg-blue-50/50 dark:bg-blue-900/10 border border-blue-100/50 dark:border-blue-800/20">
+                            <p className="text-[10px] font-bold text-blue-900 dark:text-blue-200 mb-0.5">{item.t}</p>
+                            <p className="text-[9px] text-blue-700 dark:text-blue-400 leading-tight">{item.d}</p>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )
                 },
@@ -340,15 +345,16 @@ export default function Home() {
                   content: (
                     <div className="space-y-1.5">
                       {[
-                        { s: '1', t: 'Kelola Kelas', d: 'Daftarkan kelas & tahun ajaran.' },
-                        { s: '2', t: 'Input Siswa', d: 'Tambah siswa atau Import Excel.' },
-                        { s: '3', t: 'Pengisian Nilai', d: 'Isi Nilai Mingguan & SAS rutin.' },
-                        { s: '4', t: 'Penilaian Praktik', d: 'Lengkapi skor praktik keagamaan.' },
-                        { s: '5', t: 'Cetak Laporan', d: 'Lihat Rekap atau cetak Raport.' }
+                        { s: '1', t: 'Pilih Kelas & Tahun', d: 'Pilih rombel dan tahun ajaran aktif di sidebar.' },
+                        { s: '2', t: 'Data Siswa', d: 'Input nama siswa secara manual atau via Import Excel.' },
+                        { s: '3', t: 'Nilai Sumatif', d: 'Isi nilai lingkup materi (Mingguan) secara berkala.' },
+                        { s: '4', t: 'Nilai SAS & Praktik', d: 'Lengkapi nilai Tes Akhir Semester dan Praktik (khusus Kelas 6).' },
+                        { s: '5', t: 'Cetak Raport', d: 'Klik menu Raport Digital untuk melihat pratinjau dan unduh PDF.' },
+                        { s: '6', t: 'Backup Berkala', d: 'Unduh file cadangan secara rutin via menu Pengaturan Profil.' }
                       ].map((item, i) => (
                         <div key={i} className="flex gap-2 items-start">
-                          <div className="w-4 h-4 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-[9px] font-bold text-primary-600 shrink-0 mt-0.5">{item.s}</div>
-                          <div className="flex-1 p-2 rounded-lg bg-gray-50 dark:bg-slate-900/50 border border-gray-100 dark:border-slate-800">
+                          <div className="w-5 h-5 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-[10px] font-bold text-primary-600 shrink-0 mt-0.5">{item.s}</div>
+                          <div className="flex-1 p-2.5 rounded-xl bg-white/40 dark:bg-slate-900/50 border border-gray-100 dark:border-slate-800 shadow-sm">
                             <p className="text-[10px] font-bold text-gray-800 dark:text-gray-200">{item.t}</p>
                             <p className="text-[9px] text-gray-500 dark:text-gray-400 leading-tight">{item.d}</p>
                           </div>
@@ -363,17 +369,18 @@ export default function Home() {
                   icon: Lock,
                   content: (
                     <div className="space-y-2">
-                      <div className="p-2 rounded-lg bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-800/20 mb-1">
-                        <p className="text-[9px] text-red-800 dark:text-red-300 leading-tight font-medium">
-                          <strong>PENTING:</strong> Selalu lakukan <strong>Backup</strong> via menu Profil setiap hari!
+                      <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-900/10 border border-rose-100 dark:border-rose-800/20 mb-1 shadow-sm">
+                        <p className="text-[9px] text-rose-800 dark:text-rose-300 leading-relaxed font-medium">
+                          <strong className="block mb-0.5 underline">PERHATIAN:</strong> Data Anda tersimpan di memori perangkat ini. Jika Anda menghapus cache browser atau ganti perangkat, data akan hilang kecuali Anda telah melakukan <strong>Backup</strong> atau <strong>Cloud Sync</strong>.
                         </p>
                       </div>
                       {[
-                        { t: 'Penyimpanan Lokal', d: 'Data terikat pada browser & perangkat ini.' },
-                        { t: 'Backup Manual', d: 'Unduh cadangan data via menu Profil.' }
+                        { t: 'Keamanan Privasi', d: 'Data siswa bersifat rahasia dan tidak diunggah ke pihak ketiga tanpa izin.' },
+                        { t: 'Sistem Backup Digital', d: 'Fitur export database dalam format JSON memudahkan migrasi antar perangkat.' },
+                        { t: 'Cloud Synchronization', d: 'Gunakan fitur Cloud Sync (jika aktif) untuk sinkronisasi data antar browser secara aman.' }
                       ].map((item, i) => (
-                        <div key={i} className="flex items-center gap-2 px-2 py-1.5 rounded-lg bg-gray-50 dark:bg-slate-900/50 border border-gray-100 dark:border-slate-800">
-                          <div className="w-1 h-1 rounded-full bg-red-500"></div>
+                        <div key={i} className="flex items-center gap-3 px-3 py-2 rounded-xl bg-white/40 dark:bg-slate-900/50 border border-gray-100 dark:border-slate-800 shadow-sm">
+                          <div className="w-1.5 h-1.5 rounded-full bg-rose-500"></div>
                           <div>
                             <p className="text-[10px] font-bold text-gray-800 dark:text-gray-200">{item.t}</p>
                             <p className="text-[9px] text-gray-500 dark:text-gray-400 leading-tight">{item.d}</p>
@@ -388,19 +395,22 @@ export default function Home() {
                   title: 'Kontak Bantuan',
                   icon: Info,
                   content: (
-                    <div className="p-2 text-center">
-                      <p className="text-[10px] text-gray-600 dark:text-gray-300 mb-2 leading-relaxed">
-                        Butuh bantuan teknis? Hubungi via WhatsApp:
+                    <div className="p-3 text-center space-y-3">
+                      <p className="text-[10px] text-gray-600 dark:text-gray-300 leading-relaxed italic">
+                        "Kami siap membantu jika Anda mengalami kendala teknis atau memiliki saran pengembangan."
                       </p>
-                      <a 
-                        href="https://wa.me/6285879584257" 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-[#25D366] hover:bg-[#128C7E] text-white rounded-full font-bold text-[10px] transition shadow-md"
-                      >
-                        <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 fill-current"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
-                        WhatsApp
-                      </a>
+                      <div className="flex flex-col gap-2">
+                        <a 
+                          href="https://wa.me/6285879584257" 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="flex items-center justify-center gap-2 px-5 py-2.5 bg-[#25D366] hover:bg-[#128C7E] text-white rounded-xl font-bold text-[11px] transition shadow-lg shadow-green-500/20 group"
+                        >
+                          <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current group-hover:scale-110 transition-transform"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+                          WhatsApp Support
+                        </a>
+                        <p className="text-[9px] text-gray-400 dark:text-gray-500">Pelayanan: Senin - Sabtu (08.00 - 16.00 WIB)</p>
+                      </div>
                     </div>
                   )
                 },
@@ -409,21 +419,28 @@ export default function Home() {
                   title: 'Profil Pengembang',
                   icon: User,
                   content: (
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-3 border-b dark:border-slate-700 pb-2">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-primary-500 to-blue-500 flex items-center justify-center text-white shadow-sm overflow-hidden shrink-0">
-                          <User size={20} />
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-3 border-b dark:border-slate-700 pb-3">
+                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-primary-500 to-emerald-500 flex items-center justify-center text-white shadow-lg overflow-hidden shrink-0">
+                          <User size={24} />
                         </div>
                         <div>
-                          <p className="text-[11px] font-bold text-gray-900 dark:text-white leading-tight">DEVELZY — Smart Assessment</p>
-                          <p className="text-[9px] text-gray-500 dark:text-gray-400 italic">Guru • Admin • Developer</p>
+                          <p className="text-[12px] font-bold text-gray-900 dark:text-white leading-tight uppercase tracking-wide">DEVELZY — Smart Tech</p>
+                          <p className="text-[9px] text-primary-500 font-bold italic">Innovation for Education</p>
                         </div>
                       </div>
-                      <div className="text-[10px] text-gray-600 dark:text-gray-300 leading-relaxed text-justify italic">
-                        "Aplikasi ini dikembangkan oleh Guru PAI & Admin <strong>SDN 01 Kalisalak</strong> untuk mendukung digitalisasi pendidikan."
+                      <div className="text-[10px] text-gray-600 dark:text-gray-300 leading-relaxed text-justify px-1">
+                        Aplikasi ini merupakan inisiatif digital dari Guru PAI & Budi Pekerti bersama Tim Admin di <strong>SDN 01 Kalisalak</strong>. Kami berkomitmen menciptakan tools modern yang meringankan beban administratif guru tanpa mengorbankan kualitas data.
                       </div>
-                      <div className="text-[10px] font-bold text-primary-600 dark:text-primary-400 border-l-2 border-primary-500 pl-2 py-0.5">
-                        Misi: Efisiensi administrasi tanpa batas.
+                      <div className="grid grid-cols-2 gap-2 mt-2">
+                        <div className="p-2 rounded-xl bg-gray-50 dark:bg-slate-800 border border-gray-100 dark:border-slate-700 text-center">
+                          <p className="text-[8px] text-gray-400 uppercase font-bold">Teknologi</p>
+                          <p className="text-[9px] font-bold text-gray-700 dark:text-gray-200">Next.js & PWA</p>
+                        </div>
+                        <div className="p-2 rounded-xl bg-gray-50 dark:bg-slate-800 border border-gray-100 dark:border-slate-700 text-center">
+                          <p className="text-[8px] text-gray-400 uppercase font-bold">Versi</p>
+                          <p className="text-[9px] font-bold text-gray-700 dark:text-gray-200">4.0 (Stable)</p>
+                        </div>
                       </div>
                     </div>
                   )
