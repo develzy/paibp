@@ -34,20 +34,22 @@ export function Report() {
     const sem1 = store.weeklyScores.find(x => x.studentId === sid && x.classId === classId && x.semester === 1);
     const sem2 = store.weeklyScores.find(x => x.studentId === sid && x.classId === classId && x.semester === 2);
     
-    function semAvg(sem: any) {
-      if (!sem) return '-';
-      const start = semester === 1 ? 1 : 6;
-      const end = semester === 1 ? 5 : 10;
+    const avgW = (() => {
       let sum = 0, cnt = 0;
-      for (let i = start; i <= end; i++) {
-        const v = sem['m' + i];
-        if (v !== '' && v !== undefined && v !== null) { sum += +v; cnt++; }
+      if (sem1) {
+        for (let i = 1; i <= 5; i++) {
+          const v = sem1['m' + i];
+          if (v !== '' && v !== undefined && v !== null) { sum += +v; cnt++; }
+        }
       }
-      return cnt > 0 ? (sum / cnt).toFixed(1) : '-';
-    }
-    
-    const avgWStr = semAvg(semester === 1 ? sem1 : sem2);
-    const avgW = avgWStr === '-' ? null : Number(avgWStr);
+      if (sem2) {
+        for (let i = 6; i <= 10; i++) {
+          const v = sem2['m' + i];
+          if (v !== '' && v !== undefined && v !== null) { sum += +v; cnt++; }
+        }
+      }
+      return cnt > 0 ? (sum / cnt) : null;
+    })();
 
     const sasData = store.sasScores.find(x => x.studentId === sid && x.classId === classId && x.semester === semester);
     const tesSAS = sasData?.tes ? Number(sasData.tes) : null;

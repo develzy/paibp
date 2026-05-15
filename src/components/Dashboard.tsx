@@ -44,24 +44,28 @@ export function Dashboard() {
   const totalStudents = activeStudents.length;
   const totalClasses = filteredClasses.length;
 
-  const getWeeklyAvg = (studentId: string, classId: string, semId: number) => {
-    const semData = store.weeklyScores.find((x) => x.studentId === studentId && x.classId === classId && x.semester === semId);
-    if (!semData) return null;
+  const getWeeklyAvg = (studentId: string, classId: string) => {
+    const sem1 = store.weeklyScores.find((x) => x.studentId === studentId && x.classId === classId && x.semester === 1);
+    const sem2 = store.weeklyScores.find((x) => x.studentId === studentId && x.classId === classId && x.semester === 2);
     
-    let totalSum = 0, totalCount = 0;
-    const nw = semData.weeks || 20;
-    for (let i = 1; i <= nw; i++) {
-      const v = semData['m' + i];
-      if (v !== '' && v !== undefined && v !== null) {
-        totalSum += +v;
-        totalCount++;
+    let sum = 0, cnt = 0;
+    if (sem1) {
+      for (let i = 1; i <= 5; i++) {
+        const v = sem1['m' + i];
+        if (v !== '' && v !== undefined && v !== null) { sum += +v; cnt++; }
       }
     }
-    return totalCount > 0 ? totalSum / totalCount : null;
+    if (sem2) {
+      for (let i = 6; i <= 10; i++) {
+        const v = sem2['m' + i];
+        if (v !== '' && v !== undefined && v !== null) { sum += +v; cnt++; }
+      }
+    }
+    return cnt > 0 ? sum / cnt : null;
   };
 
   const studentScores = activeStudents.map((s) => {
-    const avgW = getWeeklyAvg(s.id, s.classId, semester);
+    const avgW = getWeeklyAvg(s.id, s.classId);
     const sas = store.sasScores.find((x) => x.studentId === s.id && x.classId === s.classId && x.semester === semester);
     
     if (avgW === null || !sas || sas.score === '' || sas.score === undefined) return null;

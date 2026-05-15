@@ -24,19 +24,23 @@ export function Recap() {
     const sem1 = store.weeklyScores.find(x => x.studentId === studentId && x.classId === clsId && x.semester === 1);
     const sem2 = store.weeklyScores.find(x => x.studentId === studentId && x.classId === clsId && x.semester === 2);
     
-    function semAvg(sem: any) {
-      if (!sem) return null;
-      const start = semester === 1 ? 1 : 6;
-      const end = semester === 1 ? 5 : 10;
-      let sum = 0, cnt = 0;
-      for (let i = start; i <= end; i++) {
-        const v = sem['m' + i];
+    let sum = 0, cnt = 0;
+    // Semester 1 (M1 - M5)
+    if (sem1) {
+      for (let i = 1; i <= 5; i++) {
+        const v = sem1['m' + i];
         if (v !== '' && v !== undefined && v !== null) { sum += +v; cnt++; }
       }
-      return cnt > 0 ? sum / cnt : null;
+    }
+    // Semester 2 (M6 - M10)
+    if (sem2) {
+      for (let i = 6; i <= 10; i++) {
+        const v = sem2['m' + i];
+        if (v !== '' && v !== undefined && v !== null) { sum += +v; cnt++; }
+      }
     }
     
-    return semAvg(semester === 1 ? sem1 : sem2);
+    return cnt > 0 ? sum / cnt : null;
   };
 
   const getPred = (v: number) => (v >= 90 ? 'A' : v >= 80 ? 'B' : v >= 75 ? 'C' : 'D');
