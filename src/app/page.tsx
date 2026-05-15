@@ -89,9 +89,25 @@ export default function Home() {
     }
   };
 
+  const [showAbout, setShowAbout] = useState(false);
+
   if (!isClient) return null;
 
   if (!session) {
+    if (showAbout) {
+      return (
+        <div className="min-h-screen w-full bg-slate-50 dark:bg-slate-950 p-4 md:p-8">
+          <button 
+            onClick={() => setShowAbout(false)}
+            className="mb-8 px-6 py-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl font-bold text-sm shadow-sm hover:shadow-md transition-all flex items-center gap-2"
+          >
+            ← Kembali ke Login
+          </button>
+          <About />
+        </div>
+      );
+    }
+
     return (
       <div className="min-h-screen w-full bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-4">
         <div className="grid lg:grid-cols-2 gap-12 max-w-6xl w-full items-start">
@@ -122,9 +138,16 @@ export default function Home() {
                 },
                 { 
                   id: 4, 
-                  title: 'Dukungan PWA', 
-                  icon: Download, 
-                  content: 'Aplikasi dapat diinstal di HP & Laptop serta mendukung penggunaan offline.' 
+                  title: 'Informasi Lengkap', 
+                  icon: Info, 
+                  content: (
+                    <button 
+                      onClick={() => setShowAbout(true)}
+                      className="text-primary-600 font-bold hover:underline"
+                    >
+                      Klik untuk melihat detail aplikasi & FAQ
+                    </button>
+                  )
                 },
                 { 
                   id: 5, 
@@ -139,12 +162,6 @@ export default function Home() {
                     </div>
                   )
                 },
-                { 
-                  id: 6, 
-                  title: 'Profil Pengembang', 
-                  icon: User, 
-                  content: 'Dikembangkan oleh DEVELZY — Smart Tech untuk mendukung digitalisasi administrasi guru PAI.' 
-                }
               ].map(faq => (
                 <div key={faq.id} className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-md border border-gray-200/50 dark:border-slate-700/50 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all">
                   <div className="flex gap-4">
@@ -208,6 +225,12 @@ export default function Home() {
                   {loading ? 'Logging in...' : 'Masuk ke Sistem'}
                 </button>
               </form>
+              <button 
+                onClick={() => setShowAbout(true)}
+                className="w-full mt-6 py-3 border border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 rounded-xl text-xs font-bold hover:bg-gray-50 dark:hover:bg-slate-800 transition lg:hidden"
+              >
+                Lihat Informasi Aplikasi & FAQ
+              </button>
               <p className="mt-8 text-center text-xs text-gray-400">© {new Date().getFullYear()} DEVELZY — Smart Tech</p>
             </div>
           </div>
