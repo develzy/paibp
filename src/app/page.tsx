@@ -93,17 +93,17 @@ export default function Home() {
 
   if (!session) {
     return (
-      <div className="min-h-screen w-full bg-slate-50 dark:bg-slate-950 flex flex-col lg:flex-row overflow-hidden">
-        {/* Left Side: About / FAQ (Scrollable) */}
-        <div className="flex-1 overflow-y-auto bg-white/30 dark:bg-slate-900/30 backdrop-blur-sm border-r border-gray-100 dark:border-slate-800">
-          <div className="max-w-3xl mx-auto py-12 px-6">
+      <div className="h-screen w-full bg-slate-50 dark:bg-slate-950 flex flex-col lg:flex-row overflow-hidden">
+        {/* Left Side: About / FAQ (Independent Scroll) */}
+        <div className="flex-1 h-full overflow-y-auto bg-white/30 dark:bg-slate-900/30 backdrop-blur-sm border-r border-gray-100 dark:border-slate-800 scrollbar-hide">
+          <div className="max-w-3xl mx-auto py-12 px-6 lg:px-12">
             <About />
           </div>
         </div>
 
-        {/* Right Side: Login Form (Fixed/Centered on right) */}
-        <div className="w-full lg:w-[450px] flex items-center justify-center p-6 bg-slate-50 dark:bg-slate-950 shadow-2xl z-10">
-          <div className="glass rounded-[2.5rem] p-10 w-full max-w-md shadow-2xl border border-white/50 dark:border-slate-700/50">
+        {/* Right Side: Login Form (Perfectly Centered) */}
+        <div className="w-full lg:w-[500px] h-full flex items-center justify-center p-8 bg-slate-50 dark:bg-slate-950 shadow-[-20px_0_50px_rgba(0,0,0,0.1)] dark:shadow-[-20px_0_50px_rgba(0,0,0,0.3)] z-10">
+          <div className="glass rounded-[2.5rem] p-10 w-full max-w-md shadow-2xl border border-white/50 dark:border-slate-700/50 scale-90 lg:scale-100 transition-transform">
             <div className="text-center mb-10">
               <img src="./logo.png" alt="Logo PAI" className="w-20 h-20 mx-auto rounded-2xl shadow-xl mb-6 object-cover bg-white" />
               <h1 className="font-bold text-gray-900 dark:text-white text-2xl tracking-tight">Login Portal</h1>
