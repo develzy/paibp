@@ -98,20 +98,60 @@ export default function Home() {
             <h2 className="text-3xl font-black text-gray-900 dark:text-white font-serif leading-tight">
               Sistem Penilaian <br/> <span className="text-primary-500">PAIBP Terintegrasi</span>
             </h2>
-            <div className="space-y-4">
+            <div className="space-y-3 w-full">
               {[
-                { id: 1, title: 'AI Integration', icon: Star, content: 'Generate catatan wali kelas otomatis menggunakan Gemini AI.' },
-                { id: 2, title: 'Cloud Sync', icon: Wifi, content: 'Sinkronisasi data otomatis ke Cloudflare D1.' },
-                { id: 3, title: 'Raport Digital', icon: Printer, content: 'Cetak raport digital dengan satu klik.' }
+                { 
+                  id: 1, 
+                  title: 'AI Integration', 
+                  icon: Star, 
+                  content: 'Aplikasi ini terintegrasi dengan AI Pribadi yang dibuat oleh developer' 
+                },
+                { 
+                  id: 2, 
+                  title: 'Cloud Sync', 
+                  icon: Wifi, 
+                  content: 'Sinkronisasi data otomatis ke Cloudflare D1 untuk akses multi-perangkat.' 
+                },
+                { 
+                  id: 3, 
+                  title: 'Raport Digital', 
+                  icon: Printer, 
+                  content: 'Cetak raport digital format PDF dengan satu klik, rapi dan profesional.' 
+                },
+                { 
+                  id: 4, 
+                  title: 'Dukungan PWA', 
+                  icon: Download, 
+                  content: 'Aplikasi dapat diinstal di HP & Laptop serta mendukung penggunaan offline.' 
+                },
+                { 
+                  id: 5, 
+                  title: 'Dukung Aplikasi Ini', 
+                  icon: Shield, 
+                  content: (
+                    <div className="flex flex-col gap-2">
+                      <p className="text-[10px] text-gray-500 dark:text-gray-400">Hubungi kami untuk bantuan teknis atau saran pengembangan.</p>
+                      <a href="https://wa.me/6285879584257" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-primary-600 font-bold hover:underline">
+                        Contact Support via WhatsApp
+                      </a>
+                    </div>
+                  )
+                },
+                { 
+                  id: 6, 
+                  title: 'Profil Pengembang', 
+                  icon: User, 
+                  content: 'Dikembangkan oleh DEVELZY — Smart Tech untuk mendukung digitalisasi administrasi guru PAI.' 
+                }
               ].map(faq => (
-                <div key={faq.id} className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-md border border-gray-200/50 dark:border-slate-700/50 rounded-2xl p-4 shadow-sm">
+                <div key={faq.id} className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-md border border-gray-200/50 dark:border-slate-700/50 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all">
                   <div className="flex gap-4">
                     <div className="w-10 h-10 bg-blue-50 dark:bg-blue-900/30 rounded-xl flex items-center justify-center shrink-0">
                       <faq.icon size={20} className="text-blue-600 dark:text-blue-400" />
                     </div>
                     <div>
                       <p className="text-sm font-bold text-gray-900 dark:text-white">{faq.title}</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{faq.content}</p>
+                      <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">{faq.content}</div>
                     </div>
                   </div>
                 </div>
