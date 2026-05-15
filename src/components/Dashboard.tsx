@@ -1,19 +1,41 @@
 "use client";
 
 import { useStore } from "@/store/useStore";
-import { Users, School, TrendingUp, CheckCircle, BarChart3, PieChart, Filter } from "lucide-react";
+import { Users, School, TrendingUp, CheckCircle, BarChart3, PieChart, Filter, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export function Dashboard() {
   const store = useStore();
   const [mounted, setMounted] = useState(false);
-  const [semester, setSemester] = useState<number>(1);
+  const [motivation, setMotivation] = useState("Memulai hari dengan niat yang tulus adalah kunci keberkahan dalam mengajar.");
+  const [loadingAi, setLoadingAi] = useState(false);
 
   useEffect(() => {
     setMounted(true);
+    fetchMotivation();
   }, []);
 
+  const fetchMotivation = async () => {
+    setLoadingAi(true);
+    try {
+      const prompt = "Berikan 1 kalimat motivasi singkat dan sangat bijak untuk guru PAI (Pendidikan Agama Islam) yang sedang lelah mengajar. Kalimat harus menyejukkan hati dan menguatkan niat. Jawab HANYA 1 kalimat tanpa tanda kutip.";
+      const res = await fetch('/api/ai/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt })
+      });
+      const data = await res.json();
+      if (data.result) setMotivation(data.result);
+    } catch (err) {
+      console.error("Failed to fetch motivation", err);
+    } finally {
+      setLoadingAi(false);
+    }
+  };
+
   if (!mounted) return null;
+
+  const semester = 1; // Default to Semester 1 
 
   const filteredClasses = store.classes.filter(c => c.year === store.activeYear);
   const classIds = new Set(filteredClasses.map(c => c.id));
@@ -63,21 +85,39 @@ export function Dashboard() {
   return (
     <div className="w-full max-w-6xl fade-in">
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
-        <div className="flex gap-4">
-          <div className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl shadow-sm">
-            <Filter size={16} className="text-primary-500" />
-            <select 
-              value={semester} 
-              onChange={(e) => setSemester(Number(e.target.value))}
-              className="bg-transparent text-sm font-bold outline-none dark:text-white"
-            >
-              <option value={1}>Semester 1</option>
-              <option value={2}>Semester 2</option>
-            </select>
-          </div>
+        <div>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white font-serif">Selamat Datang Kembali, Guru PAIBP!</h2>
+          <p className="text-sm text-gray-500 mt-1">Pantau perkembangan akademik siswa Anda secara real-time.</p>
         </div>
         <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest bg-gray-100 dark:bg-slate-800 px-3 py-1 rounded-full">
           Live Analysis Mode: <span className="text-primary-500">Active</span>
+        </div>
+      </div>
+
+      {/* AI Motivation Section */}
+      <div className="mb-6 relative overflow-hidden group">
+        <div className="absolute inset-0 bg-gradient-to-r from-primary-500/10 to-emerald-500/10 dark:from-primary-500/5 dark:to-emerald-500/5 rounded-3xl -z-10"></div>
+        <div className="glass rounded-3xl p-6 border border-primary-100/50 dark:border-primary-900/20 shadow-sm flex flex-col md:flex-row items-center gap-6">
+          <div className="w-16 h-16 bg-gradient-to-tr from-primary-500 to-emerald-500 rounded-2xl flex items-center justify-center text-white shadow-lg shrink-0 group-hover:rotate-6 transition-transform">
+            <Sparkles size={32} />
+          </div>
+          <div className="flex-1 text-center md:text-left">
+            <div className="flex items-center justify-center md:justify-start gap-2 mb-2">
+              <span className="text-[10px] font-black text-primary-600 dark:text-primary-400 uppercase tracking-[0.2em]">Daily Motivation</span>
+              <div className="h-px w-8 bg-primary-200 dark:bg-primary-800"></div>
+            </div>
+            <p className={`text-sm md:text-base font-medium text-gray-700 dark:text-gray-200 italic leading-relaxed transition-opacity duration-500 ${loadingAi ? 'opacity-50' : 'opacity-100'}`}>
+              "{motivation}"
+            </p>
+            <p className="mt-3 text-[10px] font-bold text-gray-400 dark:text-gray-500">By Develzy.AI</p>
+          </div>
+          <button 
+            onClick={fetchMotivation}
+            disabled={loadingAi}
+            className="p-2.5 rounded-xl bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 text-gray-400 hover:text-primary-500 transition shadow-sm"
+          >
+            <TrendingUp size={18} className={loadingAi ? 'animate-spin' : ''} />
+          </button>
         </div>
       </div>
 
@@ -91,7 +131,7 @@ export function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="glass rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-slate-800">
           <h3 className="font-semibold mb-6 text-gray-900 dark:text-white text-sm flex items-center gap-2 font-serif">
-            <BarChart3 size={17} className="text-primary-600" /> Distribusi Nilai & Sampel Siswa (Smt {semester})
+            <BarChart3 size={17} className="text-primary-600" /> Distribusi Nilai & Sampel Siswa
           </h3>
           <div className="space-y-6">
             {ranges.map((r, idx) => {
