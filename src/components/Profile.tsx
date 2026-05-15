@@ -11,10 +11,19 @@ export function Profile() {
   const [nip, setNip] = useState(p.nip || '');
   const [school, setSchool] = useState(p.school || '');
   const [subject, setSubject] = useState(p.subject || 'Pendidikan Agama Islam dan Budi Pekerti');
+  const [school_head, setSchoolHead] = useState(p.school_head || '');
+  const [school_head_nip, setSchoolHeadNip] = useState(p.school_head_nip || '');
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
-    saveProfile({ name: name.trim() || 'Guru PAIBP', nip: nip.trim(), school: school.trim(), subject: subject.trim() });
+    saveProfile({ 
+      name: name.trim() || 'Guru PAIBP', 
+      nip: nip.trim(), 
+      school: school.trim(), 
+      subject: subject.trim(),
+      school_head: school_head.trim(),
+      school_head_nip: school_head_nip.trim()
+    });
     toast.success("Profil berhasil disimpan!");
   };
 
@@ -103,6 +112,19 @@ export function Profile() {
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Mata Pelajaran</label>
             <input value={subject} onChange={e => setSubject(e.target.value)} className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-600 dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none transition text-sm" />
+          </div>
+          <div className="pt-4 border-t border-gray-100 dark:border-slate-700">
+            <h4 className="text-xs font-bold text-primary-600 dark:text-primary-400 uppercase tracking-widest mb-4">Informasi Kepala Sekolah</h4>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Nama Kepala Sekolah</label>
+                <input value={school_head} onChange={e => setSchoolHead(e.target.value)} placeholder="Masukkan nama kepala sekolah" className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-600 dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none transition text-sm" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">NIP Kepala Sekolah</label>
+                <input value={school_head_nip} onChange={e => setSchoolHeadNip(e.target.value)} placeholder="Masukkan NIP kepala sekolah" className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-600 dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none transition text-sm" />
+              </div>
+            </div>
           </div>
           <button type="submit" className="w-full py-3 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-semibold rounded-xl transition shadow-lg shadow-primary-500/20 text-sm">
             Simpan Perubahan

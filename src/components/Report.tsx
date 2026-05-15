@@ -128,7 +128,7 @@ export function Report() {
       .description-box { margin: 15px 0; border: 1px solid #e2e8f0; border-radius: 6px; overflow: hidden; }
       .desc-header { background: #f8fafc; padding: 6px 10px; font-weight: 700; font-size: 10px; border-bottom: 1px solid #e2e8f0; }
       .desc-body { padding: 10px; font-size: 11px; line-height: 1.4; font-style: italic; }
-      .signature-area { display: grid; grid-template-columns: 1fr 1.2fr 1fr; gap: 10px; margin-top: 30px; font-size: 11px; text-align: center; }
+      .signature-area { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 30px; font-size: 11px; text-align: center; }
       .sig-box { display: flex; flex-direction: column; justify-content: space-between; min-height: 80px; }
       .sig-name { font-weight: 700; text-decoration: underline; }
       @media print { body { background: white; } .no-print { display: none; } }
@@ -173,7 +173,6 @@ export function Report() {
             <div class="desc-body">${data.desc}</div>
           </div>
           <div class="signature-area">
-            <div class="sig-box"><p>Orang Tua/Wali,</p><div style="margin-top: 35px; border-bottom: 1px solid #111; width: 80%; margin: 0 auto;"></div></div>
             <div class="sig-box"><p>Mengetahui,<br/>Kepala Sekolah</p><div style="margin-top: 25px;"><p class="sig-name">${profile.school_head || '........................'}</p><p style="font-size:9px;">NIP. ${profile.school_head_nip || '........................'}</p></div></div>
             <div class="sig-box"><p>Kalisalak, ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</p><p>Guru PAIBP</p><div style="margin-top: 25px;"><p class="sig-name">${profile.name}</p><p style="font-size:9px;">NIP. ${profile.nip || '........................'}</p></div></div>
           </div>
@@ -299,25 +298,25 @@ export function Report() {
       doc.text(splitDesc, margin, y);
       y += (splitDesc.length * 5) + 10;
 
+      // Signatures
       const sigY = y;
       doc.setFont("helvetica", "normal");
-      doc.text("Orang Tua/Wali,", margin + 5, sigY);
+      
+      doc.text("Mengetahui,", 50, sigY + 5, { align: "center" });
+      doc.text("Kepala Sekolah", 50, sigY + 10, { align: "center" });
+
       doc.text(`Kalisalak, ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}`, 155, sigY, { align: "center" });
       doc.text("Guru PAIBP", 155, sigY + 5, { align: "center" });
-      
-      doc.text("Mengetahui,", 105, sigY + 5, { align: "center" });
-      doc.text("Kepala Sekolah", 105, sigY + 10, { align: "center" });
 
       y += 30;
       doc.setFont("helvetica", "bold");
-      doc.text("___________________", margin + 5, y);
-      doc.text(profile.school_head || '........................', 105, y, { align: "center" });
+      doc.text(profile.school_head || '........................', 50, y, { align: "center" });
       doc.text(profile.name, 155, y, { align: "center" });
       
       y += 5;
       doc.setFont("helvetica", "normal");
       doc.setFontSize(8);
-      doc.text(`NIP. ${profile.school_head_nip || '........................'}`, 105, y, { align: "center" });
+      doc.text(`NIP. ${profile.school_head_nip || '........................'}`, 50, y, { align: "center" });
       doc.text(`NIP. ${profile.nip || '........................'}`, 155, y, { align: "center" });
 
       doc.save(`Raport_${st.name}_${cls.name}.pdf`);
@@ -401,11 +400,7 @@ export function Report() {
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-4 text-sm text-center">
-            <div className="flex flex-col justify-between h-32">
-              <p>Orang Tua/Wali,</p>
-              <div className="mt-16 border-b border-slate-400 w-3/4 mx-auto"></div>
-            </div>
+          <div className="grid grid-cols-2 gap-4 text-sm text-center">
             <div className="flex flex-col justify-between h-32">
               <p>&nbsp;</p>
               <p className="font-medium">Mengetahui,<br/>Kepala Sekolah</p>
