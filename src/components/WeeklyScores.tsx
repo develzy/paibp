@@ -11,7 +11,7 @@ export function WeeklyScores() {
   const store = useStore();
   const [classId, setClassId] = useState("");
   const [semester, setSemester] = useState<number>(1);
-  const [weeksCount, setWeeksCount] = useState<number>(20);
+  const [weeksCount] = useState<number>(10);
   const [showImport, setShowImport] = useState(false);
   const [search, setSearch] = useState("");
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' | null }>({ key: 'name', direction: 'asc' });
@@ -73,14 +73,7 @@ export function WeeklyScores() {
     return sortConfig.direction === 'asc' ? <ChevronUp size={12} className="text-primary-500" /> : <ChevronDown size={12} className="text-primary-500" />;
   };
 
-  const handleWeekChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const val = parseInt(e.target.value);
-    setWeeksCount(val);
-    if (!classId) return;
-    store.setWeeklyScores((prev) => 
-      prev.map(w => (w.classId === classId && w.semester === semester) ? { ...w, weeks: val } : w)
-    );
-  };
+
 
   const handleScoreChange = (studentId: string, week: number, val: string) => {
     store.setWeeklyScores((prev) => {
@@ -101,7 +94,7 @@ export function WeeklyScores() {
 
   const deleteScores = () => {
     store.setWeeklyScores((prev) => prev.filter(w => !(w.classId === classId && w.semester === semester)));
-    toast.success(`Semua nilai mingguan berhasil dihapus`);
+    toast.success(`Semua nilai sumatif berhasil dihapus`);
   };
 
   const exportWeekly = () => {
@@ -114,7 +107,7 @@ export function WeeklyScores() {
       let sum = 0, cnt = 0;
       for (let i = 1; i <= weeksCount; i++) {
         const v = w['m' + i];
-        row['M' + i] = (v !== '' && v !== undefined && v !== null) ? v : '-';
+        row['Sumatif ' + i] = (v !== '' && v !== undefined && v !== null) ? v : '-';
         if (v !== '' && v !== undefined && v !== null) { sum += +v; cnt++; }
       }
       row['Rata-rata'] = cnt > 0 ? (sum / cnt).toFixed(1) : '-';
@@ -123,8 +116,8 @@ export function WeeklyScores() {
     
     const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Nilai Mingguan');
-    XLSX.writeFile(wb, `nilai_mingguan_${cls?.name}_sem${semester}.xlsx`);
+    XLSX.utils.book_append_sheet(wb, ws, 'Nilai Sumatif');
+    XLSX.writeFile(wb, `nilai_sumatif_${cls?.name}_sem${semester}.xlsx`);
   };
 
   const downloadTemplate = () => {
@@ -133,14 +126,14 @@ export function WeeklyScores() {
     
     const data = students.map(s => {
       const row: any = { 'Nama': s.name, 'NIS': s.nis };
-      for (let i = 1; i <= weeksCount; i++) row['M' + i] = '';
+      for (let i = 1; i <= weeksCount; i++) row['Sumatif ' + i] = '';
       return row;
     });
     
     const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Template Mingguan');
-    XLSX.writeFile(wb, `template_mingguan_${cls?.name}_sem${semester}.xlsx`);
+    XLSX.utils.book_append_sheet(wb, ws, 'Template Sumatif');
+    XLSX.writeFile(wb, `template_sumatif_${cls?.name}_sem${semester}.xlsx`);
   };
 
   const importWeekly = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -169,7 +162,7 @@ export function WeeklyScores() {
               
               let updated = false;
               for (let i = 1; i <= weeksCount; i++) {
-                const val = row['M' + i];
+                const val = row['Sumatif ' + i];
                 if (val !== undefined && val !== '-' && val !== '') {
                   w[`m${i}`] = Number(val);
                   updated = true;
@@ -189,7 +182,7 @@ export function WeeklyScores() {
           return next;
         });
         
-        if (count > 0) toast.success(`${count} data nilai mingguan berhasil diimport`);
+        if (count > 0) toast.success(`${count} data nilai sumatif berhasil diimport`);
         else toast.error('Tidak ada data nilai yang valid untuk diimport');
       } catch (err) {
         toast.error('Gagal membaca file Excel');
@@ -206,7 +199,7 @@ export function WeeklyScores() {
           <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-md overflow-hidden border border-gray-100 dark:border-slate-700">
             <div className="flex justify-between items-center p-5 border-b border-gray-100 dark:border-slate-700 bg-gray-50/50 dark:bg-slate-800/50">
               <h3 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                <Upload size={18} className="text-amber-500" /> Import Nilai Mingguan
+                <Upload size={18} className="text-amber-500" /> Import Nilai Sumatif
               </h3>
               <button onClick={() => setShowImport(false)} className="text-gray-400 hover:text-red-500 transition-colors p-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20">
                 <X size={20} />
@@ -247,11 +240,9 @@ export function WeeklyScores() {
           </select>
         </div>
         <div>
-          <select value={weeksCount} onChange={handleWeekChange} className="px-3 py-2 rounded-xl border border-gray-200 dark:border-slate-600 dark:bg-slate-800 dark:text-white outline-none transition text-sm">
-            <option value="20">20</option>
-            <option value="21">21</option>
-            <option value="22">22</option>
-          </select>
+          <div className="px-3 py-2 rounded-xl border border-gray-200 dark:border-slate-600 dark:bg-slate-800 dark:text-white text-sm font-medium">
+            10 Sumatif (Lingkup Materi)
+          </div>
         </div>
         <button onClick={exportWeekly} className="px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-medium flex items-center gap-1.5 shadow-sm transition text-sm">
           <Download size={15} /> Export
@@ -284,19 +275,45 @@ export function WeeklyScores() {
           <table className="w-full text-sm">
             <thead className="sticky top-0 bg-gray-50 dark:bg-slate-700 z-10 shadow-sm">
               <tr>
-                <th onClick={() => requestSort('name')} className="p-2 text-left min-w-[120px] sticky left-0 bg-gray-50 dark:bg-slate-700 font-semibold text-xs cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors group">
+                <th rowSpan={2} onClick={() => requestSort('name')} className="p-2 text-left min-w-[150px] sticky left-0 bg-gray-50 dark:bg-slate-700 font-semibold text-xs cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors group border-r border-gray-200 dark:border-slate-600">
                   <div className="flex items-center gap-1.5">
                     Nama {getSortIcon('name')}
                   </div>
                 </th>
-                {Array.from({ length: weeksCount }).map((_, i) => (
-                  <th key={i} className="p-1 text-[10px] min-w-[40px] font-medium text-center">M{i + 1}</th>
-                ))}
-                <th onClick={() => requestSort('avg')} className="p-2 min-w-[60px] font-semibold text-[10px] text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors bg-primary-50/20">
+                <th colSpan={10} className="p-2 text-center font-bold text-xs bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border-b border-gray-200 dark:border-slate-600">
+                  Sumatif Akhir Lingkup Materi (Wajib)
+                </th>
+                <th rowSpan={2} onClick={() => requestSort('avg')} className="p-2 min-w-[80px] font-semibold text-[10px] text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors bg-primary-50/20 border-l border-gray-200 dark:border-slate-600">
                   <div className="flex items-center justify-center gap-1.5">
-                    Rata-rata {getSortIcon('avg')}
+                    NA Sumatif {getSortIcon('avg')}
                   </div>
                 </th>
+              </tr>
+              <tr>
+                {[
+                  "Sumatif 1", "Sumatif 2", "Sumatif 3", "Sumatif 4", "Sumatif 5",
+                  "Sumatif 6", "Sumatif 7", "Sumatif 8", "Sumatif 9", "Sumatif 10"
+                ].map((s, i) => (
+                  <th key={i} className="p-1 text-[9px] min-w-[85px] font-bold text-center border-x border-gray-100 dark:border-slate-600 bg-white dark:bg-slate-800">
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-primary-600 dark:text-primary-400">{s}</span>
+                      <span className="text-[8px] font-normal text-gray-500 dark:text-gray-400 leading-tight">
+                        {[
+                          "Belajar Al-Qur’an & Hadis",
+                          "Allah Maha Segalanya",
+                          "Hidup Damai Memaafkan",
+                          "Hukum Halal & Haram",
+                          "Jasa Khulafaurrasyidin",
+                          "Surah Al-A'la",
+                          "Indahnya Ketetapan Allah",
+                          "Peduli Lingkungan",
+                          "Mengamalkan Puasa Sunah",
+                          "Khalifah Usman & Ali"
+                        ][i]}
+                      </span>
+                    </div>
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
@@ -337,8 +354,8 @@ export function WeeklyScores() {
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
         onConfirm={deleteScores}
-        title="Hapus Nilai Mingguan?"
-        message={`Apakah Anda yakin ingin menghapus semua nilai mingguan di ${store.classes.find(c => c.id === classId)?.name} (Semester ${semester})? Data yang sudah dihapus tidak bisa dikembalikan.`}
+        title="Hapus Nilai Sumatif?"
+        message={`Apakah Anda yakin ingin menghapus semua nilai sumatif di ${store.classes.find(c => c.id === classId)?.name} (Semester ${semester})? Data yang sudah dihapus tidak bisa dikembalikan.`}
         confirmText="Ya, Hapus Semua"
       />
     </>

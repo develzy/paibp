@@ -17,17 +17,17 @@ CREATE TABLE IF NOT EXISTS students (
     FOREIGN KEY (class_id) REFERENCES classes(id) ON DELETE CASCADE
 );
 
--- Tabel Nilai Mingguan
-CREATE TABLE IF NOT EXISTS weekly_scores (
+-- Tabel Nilai Sumatif Lingkup Materi
+CREATE TABLE IF NOT EXISTS sumatif_scores (
     id INT AUTO_INCREMENT PRIMARY KEY,
     student_id VARCHAR(50) NOT NULL,
     class_id VARCHAR(50) NOT NULL,
     semester INT NOT NULL,
-    week_number INT NOT NULL,
+    sumatif_number INT NOT NULL, -- 1-10
     score DECIMAL(5,2),
     FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
     FOREIGN KEY (class_id) REFERENCES classes(id) ON DELETE CASCADE,
-    UNIQUE KEY unique_weekly_score (student_id, class_id, semester, week_number)
+    UNIQUE KEY unique_sumatif_score (student_id, class_id, semester, sumatif_number)
 );
 
 -- Tabel Nilai Sumatif Akhir Semester (SAS)
@@ -35,10 +35,16 @@ CREATE TABLE IF NOT EXISTS sas_scores (
     id INT AUTO_INCREMENT PRIMARY KEY,
     student_id VARCHAR(50) NOT NULL,
     class_id VARCHAR(50) NOT NULL,
-    score DECIMAL(5,2),
+    semester INT NOT NULL,
+    non_tes DECIMAL(5,2),
+    pg DECIMAL(5,2),
+    isian DECIMAL(5,2),
+    uraian DECIMAL(5,2),
+    tes DECIMAL(5,2), -- Calculated (PG+Isian+Uraian)/50*100
+    score DECIMAL(5,2), -- NA SAS (Non-Tes + Tes)/2
     FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
     FOREIGN KEY (class_id) REFERENCES classes(id) ON DELETE CASCADE,
-    UNIQUE KEY unique_sas_score (student_id, class_id)
+    UNIQUE KEY unique_sas_score (student_id, class_id, semester)
 );
 
 -- Tabel Nilai Praktik (JSON atau Relasional, di sini disederhanakan dengan JSON agar fleksibel seperti State)

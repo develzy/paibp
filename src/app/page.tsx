@@ -513,7 +513,7 @@ const PAGES = [
   {id:'dashboard', icon: LayoutDashboard, label:'Dashboard'},
   {id:'classes', icon: School, label:'Kelola Kelas'},
   {id:'students', icon: Users, label:'Kelola Siswa'},
-  {id:'weekly', icon: Calendar, label:'Nilai Mingguan'},
+  {id:'weekly', icon: Calendar, label:'Nilai Sumatif'},
   {id:'sas', icon: FileText, label:'Nilai SAS'},
   {id:'practice', icon: Hand, label:'Penilaian Praktik'},
   {id:'asaj', icon: Award, label:'ASAJ Kelas 6'},

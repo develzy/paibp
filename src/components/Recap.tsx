@@ -68,8 +68,12 @@ export function Recap() {
     
     let base = students.map(s => {
       const avgW = getWeeklyAvg(s.id, classId);
-      const sas = store.sasScores.find(x => x.studentId === s.id && x.classId === classId && x.semester === semester)?.score || '';
-      const raport = avgW !== null && sas !== '' ? ((avgW + +sas) / 2) : null;
+      const sasObj = store.sasScores.find(x => x.studentId === s.id && x.classId === classId && x.semester === semester);
+      const nonTes = sasObj?.nonTes || '-';
+      const tes = sasObj?.tes || '-';
+      const naSas = sasObj?.score || '-';
+      
+      const raport = avgW !== null && naSas !== '-' ? ((avgW + +naSas) / 2) : null;
       const pr = store.practiceScores.find(x => x.studentId === s.id && x.classId === classId);
       const praktik = pr ? calcFinalPractice(pr) : '-';
       const asaj = isKelas6 ? (() => {
@@ -80,10 +84,10 @@ export function Recap() {
       return {
         name: s.name,
         avgW: avgW?.toFixed(1) || '-',
-        sas: sas || '-',
+        nonTes, tes, naSas,
         raport: raport?.toFixed(1) || '-',
         praktik, asaj, raportNum: raport,
-        sasNum: sas !== '' ? Number(sas) : -1,
+        sasNum: naSas !== '-' ? Number(naSas) : -1,
         nis: s.nis
       };
     }).filter(r => 
@@ -132,7 +136,7 @@ export function Recap() {
     const cls = store.classes.find(c => c.id === classId);
     const exportData = rows.map((r, idx) => {
       const row: any = {
-        '#': idx + 1, 'Nama': r.name, 'Mingguan': r.avgW, 'SAS': r.sas, 'Raport': r.raport, 'Praktik': r.praktik
+        '#': idx + 1, 'Nama': r.name, 'NA Sumatif': r.avgW, 'Praktik': r.praktik, 'Non Tes': r.nonTes, 'Tes': r.tes, 'NA SAS': r.naSas, 'Raport': r.raport
       };
       if (isKelas6) row['ASAJ'] = r.asaj;
       row['Predikat'] = r.raport !== '-' ? getPred(+r.raport) : '-';
@@ -179,8 +183,8 @@ export function Recap() {
       <div className="glass rounded-2xl p-4 mb-4 dark:text-gray-300 shadow-sm">
         <h4 className="font-semibold text-xs text-gray-800 dark:text-white mb-1.5 font-serif">Penjelasan Penilaian:</h4>
         <div className="text-[11px] space-y-0.5 text-gray-500 dark:text-gray-400">
-          <p><strong>Raport:</strong> (Mingguan + SAS) ÷ 2 &nbsp;|&nbsp; <strong>Praktik:</strong> Wudhu 25%, Qur'an 25%, Sholat 35%, Tayamum 15%</p>
-          <p><strong>Predikat:</strong> A (90-100), B (80-89), C (75-79), D (&lt;75) &nbsp;|&nbsp; <strong>Tuntas:</strong> ≥ 75</p>
+          <p><strong>Nilai Rapor:</strong> (NA Sumatif + NA SAS) ÷ 2 &nbsp;|&nbsp; <strong>Praktik:</strong> Wudhu 25%, Qur'an 25%, Sholat 35%, Tayamum 15%</p>
+          <p><strong>NA SAS:</strong> (Non Tes + Tes) ÷ 2 &nbsp;|&nbsp; <strong>Predikat:</strong> A (90-100), B (80-89), C (75-79), D (&lt;75) &nbsp;|&nbsp; <strong>Tuntas:</strong> ≥ 75</p>
         </div>
       </div>
 
@@ -192,42 +196,47 @@ export function Recap() {
         ) : (
           <table className="w-full text-sm">
             <thead className="bg-gray-50 dark:bg-slate-700 sticky top-0 z-10">
-              <tr>
-                <th className="p-2 font-semibold text-xs">#</th>
-                <th onClick={() => requestSort('name')} className="p-2 text-left font-semibold text-xs cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors">
+              <tr className="border-b border-gray-200 dark:border-slate-600">
+                <th rowSpan={2} className="p-2 font-semibold text-xs border-r border-gray-200 dark:border-slate-600">#</th>
+                <th rowSpan={2} onClick={() => requestSort('name')} className="p-2 text-left font-semibold text-xs cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors border-r border-gray-200 dark:border-slate-600">
                   <div className="flex items-center gap-1.5">
                     Nama {getSortIcon('name')}
                   </div>
                 </th>
-                <th className="p-2 font-semibold text-xs text-center">Mingguan</th>
-                <th onClick={() => requestSort('sas')} className="p-2 font-semibold text-xs text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors">
+                <th rowSpan={2} className="p-2 font-semibold text-[10px] text-center border-r border-gray-200 dark:border-slate-600 bg-emerald-50 dark:bg-emerald-900/10">NA Sumatif<br/>Lingkup Materi</th>
+                <th rowSpan={2} className="p-2 font-semibold text-[10px] text-center border-r border-gray-200 dark:border-slate-600 bg-amber-50 dark:bg-amber-900/10">Praktik</th>
+                <th colSpan={3} className="p-2 font-semibold text-[10px] text-center border-r border-gray-200 dark:border-slate-600 bg-blue-50 dark:bg-blue-900/10 text-blue-700 dark:text-blue-300">Sumatif Akhir Semester (SAS)</th>
+                <th rowSpan={2} onClick={() => requestSort('raport')} className="p-2 font-semibold text-[10px] text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors bg-primary-50/30 border-r border-gray-200 dark:border-slate-600 text-primary-700 dark:text-primary-300">
                   <div className="flex items-center justify-center gap-1.5">
-                    SAS {getSortIcon('sas')}
+                    Nilai Rapor {getSortIcon('raport')}
                   </div>
                 </th>
-                <th onClick={() => requestSort('raport')} className="p-2 font-semibold text-xs text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors bg-primary-50/20">
-                  <div className="flex items-center justify-center gap-1.5">
-                    Raport {getSortIcon('raport')}
-                  </div>
+                {isKelas6 && <th rowSpan={2} className="p-2 font-semibold text-[10px] border-r border-gray-200 dark:border-slate-600">ASAJ</th>}
+                <th rowSpan={2} className="p-2 font-semibold text-[10px] text-center border-r border-gray-200 dark:border-slate-600">Predikat</th>
+                <th rowSpan={2} className="p-2 font-semibold text-[10px] text-center">Status</th>
+              </tr>
+              <tr className="bg-gray-50/50 dark:bg-slate-700/50">
+                <th className="p-1 font-bold text-[9px] text-center border-r border-gray-200 dark:border-slate-600">Non Tes</th>
+                <th className="p-1 font-bold text-[9px] text-center border-r border-gray-200 dark:border-slate-600">Tes</th>
+                <th onClick={() => requestSort('sas')} className="p-1 font-bold text-[9px] text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors border-r border-gray-200 dark:border-slate-600 text-blue-600 dark:text-blue-400">
+                   NA SAS {getSortIcon('sas')}
                 </th>
-                <th className="p-2 font-semibold text-xs text-center">Praktik</th>
-                {isKelas6 && <th className="p-2 font-semibold text-xs">ASAJ</th>}
-                <th className="p-2 font-semibold text-xs text-center">Predikat</th>
-                <th className="p-2 font-semibold text-xs text-center">Status</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
               {rows.map((r, i) => (
-                <tr key={i} className="dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-700/30 transition">
-                  <td className="p-2 text-center text-xs">{i + 1}</td>
-                  <td className="p-2 font-medium text-xs">{r.name}</td>
-                  <td className="p-2 text-center text-xs">{r.avgW}</td>
-                  <td className="p-2 text-center text-xs">{r.sas}</td>
-                  <td className="p-2 text-center font-bold text-xs">{r.raport}</td>
-                  <td className="p-2 text-center text-xs">{r.praktik}</td>
-                  {isKelas6 && <td className="p-2 text-center text-xs">{r.asaj}</td>}
-                  <td className="p-2 text-center text-xs">{r.raport !== '-' ? getPred(+r.raport) : '-'}</td>
-                  <td className="p-2 text-center text-xs">{r.raport !== '-' ? (+r.raport >= 75 ? <span className="text-primary-600 font-medium">Tuntas</span> : <span className="text-red-500 font-medium">Belum Tuntas</span>) : '-'}</td>
+                <tr key={i} className="dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-700/30 transition border-b border-gray-100 dark:border-slate-800">
+                  <td className="p-2 text-center text-xs border-r border-gray-100 dark:border-slate-800">{i + 1}</td>
+                  <td className="p-2 font-medium text-xs border-r border-gray-100 dark:border-slate-800">{r.name}</td>
+                  <td className="p-2 text-center text-xs border-r border-gray-100 dark:border-slate-800 font-bold text-emerald-600 dark:text-emerald-400">{r.avgW}</td>
+                  <td className="p-2 text-center text-xs border-r border-gray-100 dark:border-slate-800">{r.praktik}</td>
+                  <td className="p-2 text-center text-xs border-r border-gray-100 dark:border-slate-800">{r.nonTes}</td>
+                  <td className="p-2 text-center text-xs border-r border-gray-100 dark:border-slate-800">{r.tes}</td>
+                  <td className="p-2 text-center text-xs border-r border-gray-100 dark:border-slate-800 font-bold text-blue-600 dark:text-blue-400">{r.naSas}</td>
+                  <td className="p-2 text-center font-black text-xs border-r border-gray-100 dark:border-slate-800 text-primary-600 dark:text-primary-400">{r.raport}</td>
+                  {isKelas6 && <td className="p-2 text-center text-xs border-r border-gray-100 dark:border-slate-800">{r.asaj}</td>}
+                  <td className="p-2 text-center text-xs border-r border-gray-100 dark:border-slate-800 font-bold">{r.raport !== '-' ? getPred(+r.raport) : '-'}</td>
+                  <td className="p-2 text-center text-xs">{r.raport !== '-' ? (+r.raport >= 75 ? <span className="text-primary-600 font-bold">Tuntas</span> : <span className="text-red-500 font-bold">Belum Tuntas</span>) : '-'}</td>
                 </tr>
               ))}
             </tbody>

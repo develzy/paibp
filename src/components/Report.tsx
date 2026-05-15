@@ -180,7 +180,7 @@ export function Report() {
             <tbody>
               <tr><td>1</td><td>Rata-rata Nilai Semester 1</td><td class="val-cell">${data.avgSem1}</td><td class="pred-cell">${data.avgSem1 !== '-' ? getPred(+data.avgSem1) : '-'}</td></tr>
               <tr><td>2</td><td>Rata-rata Nilai Semester 2</td><td class="val-cell">${data.avgSem2}</td><td class="pred-cell">${data.avgSem2 !== '-' ? getPred(+data.avgSem2) : '-'}</td></tr>
-              <tr><td>3</td><td>Nilai Harian (Mingguan)</td><td class="val-cell">${data.avgW?.toFixed(1) || '-'}</td><td class="pred-cell">${data.avgW ? getPred(data.avgW) : '-'}</td></tr>
+              <tr><td>3</td><td>NA Sumatif Lingkup Materi</td><td class="val-cell">${data.avgW?.toFixed(1) || '-'}</td><td class="pred-cell">${data.avgW ? getPred(data.avgW) : '-'}</td></tr>
               <tr><td>4</td><td>Sumatif Akhir Semester (SAS)</td><td class="val-cell">${data.sas || '-'}</td><td class="pred-cell">${data.sas ? getPred(+data.sas) : '-'}</td></tr>
               <tr class="highlight-row"><td>5</td><td>NILAI AKHIR RAPORT</td><td class="val-cell">${data.raport?.toFixed(1) || '-'}</td><td class="pred-cell">${data.raport ? getPred(+data.raport) : '-'}</td></tr>
               <tr><td>6</td><td>Penilaian Praktik Keagamaan</td><td class="val-cell">${data.praktik}</td><td class="pred-cell">${data.praktik !== '-' ? getPred(+data.praktik) : '-'}</td></tr>
@@ -292,7 +292,7 @@ export function Report() {
       const rows = [
         ["1", "Rata-rata Nilai Semester 1", data.avgSem1, data.avgSem1 !== '-' ? getPred(+data.avgSem1) : '-'],
         ["2", "Rata-rata Nilai Semester 2", data.avgSem2, data.avgSem2 !== '-' ? getPred(+data.avgSem2) : '-'],
-        ["3", "Nilai Harian (Mingguan)", data.avgW?.toFixed(1) || '-', data.avgW ? getPred(data.avgW) : '-'],
+        ["3", "NA Sumatif Lingkup Materi", data.avgW?.toFixed(1) || '-', data.avgW ? getPred(data.avgW) : '-'],
         ["4", "Sumatif Akhir Semester (SAS)", data.sas || '-', data.sas ? getPred(+data.sas) : '-'],
         ["5", "NILAI AKHIR RAPORT", data.raport?.toFixed(1) || '-', data.raport ? getPred(+data.raport) : '-'],
         ["6", "Penilaian Praktik Keagamaan", data.praktik, data.praktik !== '-' ? getPred(+data.praktik) : '-'],
@@ -420,7 +420,7 @@ export function Report() {
               <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                 <tr><td className="p-4">1</td><td className="p-4">Rata-rata Nilai Semester 1</td><td className="p-4 text-center font-bold">{data.avgSem1}</td><td className="p-4 text-center">{data.avgSem1 !== '-' ? getPred(+data.avgSem1) : '-'}</td></tr>
                 <tr><td className="p-4">2</td><td className="p-4">Rata-rata Nilai Semester 2</td><td className="p-4 text-center font-bold">{data.avgSem2}</td><td className="p-4 text-center">{data.avgSem2 !== '-' ? getPred(+data.avgSem2) : '-'}</td></tr>
-                <tr><td className="p-4">3</td><td className="p-4">Nilai Harian (Mingguan)</td><td className="p-4 text-center font-bold">{data.avgW?.toFixed(1) || '-'}</td><td className="p-4 text-center">{data.avgW ? getPred(data.avgW) : '-'}</td></tr>
+                <tr><td className="p-4">3</td><td className="p-4">NA Sumatif Lingkup Materi</td><td className="p-4 text-center font-bold">{data.avgW?.toFixed(1) || '-'}</td><td className="p-4 text-center">{data.avgW ? getPred(data.avgW) : '-'}</td></tr>
                 <tr><td className="p-4">4</td><td className="p-4">Sumatif Akhir Semester (SAS)</td><td className="p-4 text-center font-bold">{data.sas || '-'}</td><td className="p-4 text-center">{data.sas ? getPred(+data.sas) : '-'}</td></tr>
                 <tr className="bg-primary-50/30 dark:bg-primary-900/10"><td className="p-4 font-bold text-primary-700 dark:text-primary-400">5</td><td className="p-4 font-bold text-primary-700 dark:text-primary-400">NILAI AKHIR RAPORT</td><td className="p-4 text-center font-extrabold text-primary-700 dark:text-primary-400">{data.raport?.toFixed(1) || '-'}</td><td className="p-4 text-center font-bold text-primary-700 dark:text-primary-400">{data.raport ? getPred(+data.raport) : '-'}</td></tr>
                 <tr><td className="p-4">6</td><td className="p-4">Penilaian Praktik Keagamaan</td><td className="p-4 text-center font-bold">{data.praktik}</td><td className="p-4 text-center">{data.praktik !== '-' ? getPred(+data.praktik) : '-'}</td></tr>

@@ -16,6 +16,26 @@ CREATE TABLE IF NOT EXISTS students (
   classId VARCHAR(10)
 );
 
+CREATE TABLE IF NOT EXISTS sumatif_scores (
+    studentId VARCHAR(50),
+    classId VARCHAR(50),
+    semester INT,
+    [key] VARCHAR(10),
+    score DECIMAL(5,2)
+);
+
+CREATE TABLE IF NOT EXISTS sas_scores (
+    studentId VARCHAR(50),
+    classId VARCHAR(50),
+    semester INT,
+    nonTes DECIMAL(5,2),
+    pg DECIMAL(5,2),
+    isian DECIMAL(5,2),
+    uraian DECIMAL(5,2),
+    tes DECIMAL(5,2),
+    score DECIMAL(5,2)
+);
+
 INSERT INTO classes (id, name, year) VALUES 
 ('c1', 'Kelas 1', '2024/2025'),
 ('c2', 'Kelas 2', '2024/2025'),

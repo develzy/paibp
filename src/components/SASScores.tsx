@@ -15,6 +15,7 @@ export function SASScores() {
   const [search, setSearch] = useState("");
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' | null }>({ key: 'name', direction: 'asc' });
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<'nonTes' | 'tes'>('tes');
 
   const filteredClasses = store.classes.filter(c => c.year === store.activeYear);
   const isValidClass = filteredClasses.some(c => c.id === classId);
@@ -78,29 +79,44 @@ export function SASScores() {
 
   const getPred = (v: number) => (v >= 90 ? 'A' : v >= 80 ? 'B' : v >= 75 ? 'C' : 'D');
 
-  const handleScoreChange = (studentId: string, field: 'pg' | 'isian' | 'uraian', val: string) => {
+  const handleScoreChange = (studentId: string, field: 'nonTes' | 'pg' | 'isian' | 'uraian', val: string) => {
     store.setSASScores((prev) => {
       let exists = false;
       const next = prev.map(s => {
         if (s.studentId === studentId && s.classId === classId && s.semester === semester) {
           exists = true;
-          const updated = { ...s, [field]: val ? Number(val) : '' };
+          const updated = { ...s, [field]: val !== '' ? Number(val) : '' };
+          
+          // Calculate Tes Score (PG + Isian + Uraian)
           const pg = Number(updated.pg || 0);
           const isian = Number(updated.isian || 0);
           const uraian = Number(updated.uraian || 0);
-          const total = pg + isian + uraian;
-          updated.score = ((total / 50) * 100).toFixed(1);
+          const tesVal = ((pg + isian + uraian) / 50) * 100;
+          updated.tes = (updated.pg !== '' || updated.isian !== '' || updated.uraian !== '') ? tesVal.toFixed(1) : '';
+
+          // Calculate NA SAS ( (Non-Tes + Tes) / 2 )
+          const nt = updated.nonTes !== '' && updated.nonTes !== undefined ? Number(updated.nonTes) : null;
+          const t = updated.tes !== '' && updated.tes !== undefined ? Number(updated.tes) : null;
+          
+          if (nt !== null && t !== null) updated.score = ((nt + t) / 2).toFixed(1);
+          else if (nt !== null) updated.score = nt.toFixed(1);
+          else if (t !== null) updated.score = t.toFixed(1);
+          else updated.score = '';
+          
           return updated;
         }
         return s;
       });
       if (!exists) {
-        const newItem: any = { studentId, classId, semester, [field]: val ? Number(val) : '', score: '' };
-        const pg = Number(newItem.pg || 0);
-        const isian = Number(newItem.isian || 0);
-        const uraian = Number(newItem.uraian || 0);
-        const total = pg + isian + uraian;
-        newItem.score = ((total / 50) * 100).toFixed(1);
+        const newItem: any = { studentId, classId, semester, [field]: val !== '' ? Number(val) : '', score: '' };
+        if (field === 'nonTes') newItem.score = val !== '' ? Number(val).toFixed(1) : '';
+        else {
+           const pg = field === 'pg' ? Number(val) : 0;
+           const isian = field === 'isian' ? Number(val) : 0;
+           const uraian = field === 'uraian' ? Number(val) : 0;
+           newItem.tes = ((pg + isian + uraian) / 50 * 100).toFixed(1);
+           newItem.score = newItem.tes;
+        }
         next.push(newItem);
       }
       return next;
@@ -133,7 +149,7 @@ export function SASScores() {
   const downloadTemplate = () => {
     if (!classId) return toast.error('Pilih kelas terlebih dahulu');
     const cls = store.classes.find(c => c.id === classId);
-    const data = students.map(s => ({ 'Nama': s.name, 'NIS': s.nis, 'PG': '', 'Isian': '', 'Uraian': '' }));
+    const data = students.map(s => ({ 'Nama': s.name, 'NIS': s.nis, 'Non Tes': '', 'PG': '', 'Isian': '', 'Uraian': '' }));
     const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Template SAS');
@@ -158,12 +174,22 @@ export function SASScores() {
               const existingIndex = next.findIndex(s => s.studentId === student.id && s.classId === classId && s.semester === semester);
               let s = existingIndex >= 0 ? { ...next[existingIndex] } : { studentId: student.id, classId, semester, pg: '', isian: '', uraian: '', score: '' } as any;
               let updated = false;
+              if (row['Non Tes'] !== undefined && row['Non Tes'] !== '-') { s.nonTes = Number(row['Non Tes']); updated = true; }
               if (row['PG'] !== undefined && row['PG'] !== '-') { s.pg = Number(row['PG']); updated = true; }
               if (row['Isian'] !== undefined && row['Isian'] !== '-') { s.isian = Number(row['Isian']); updated = true; }
               if (row['Uraian'] !== undefined && row['Uraian'] !== '-') { s.uraian = Number(row['Uraian']); updated = true; }
               if (updated) {
-                const total = Number(s.pg || 0) + Number(s.isian || 0) + Number(s.uraian || 0);
-                s.score = ((total / 50) * 100).toFixed(1);
+                const nt = s.nonTes !== '' && s.nonTes !== undefined ? Number(s.nonTes) : null;
+                const pg = Number(s.pg || 0);
+                const isian = Number(s.isian || 0);
+                const uraian = Number(s.uraian || 0);
+                const t = (s.pg !== '' || s.isian !== '' || s.uraian !== '') ? ((pg + isian + uraian) / 50 * 100) : null;
+                s.tes = t !== null ? t.toFixed(1) : '';
+                
+                if (nt !== null && t !== null) s.score = ((nt + t) / 2).toFixed(1);
+                else if (nt !== null) s.score = nt.toFixed(1);
+                else if (t !== null) s.score = t.toFixed(1);
+                else s.score = '';
                 if (existingIndex >= 0) next[existingIndex] = s;
                 else next.push(s);
                 count++;
@@ -248,37 +274,60 @@ export function SASScores() {
             />
           </div>
 
+          <div className="flex justify-center mb-6">
+            <div className="bg-gray-100 dark:bg-slate-700/50 p-1 rounded-2xl flex gap-1 shadow-inner border border-gray-200 dark:border-slate-600">
+              <button 
+                onClick={() => setActiveTab('tes')}
+                className={`px-6 py-2 rounded-xl text-sm font-bold transition-all ${activeTab === 'tes' ? 'bg-white dark:bg-slate-800 text-primary-600 dark:text-primary-400 shadow-md' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'}`}
+              >
+                Penilaian Tes
+              </button>
+              <button 
+                onClick={() => setActiveTab('nonTes')}
+                className={`px-6 py-2 rounded-xl text-sm font-bold transition-all ${activeTab === 'nonTes' ? 'bg-white dark:bg-slate-800 text-primary-600 dark:text-primary-400 shadow-md' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'}`}
+              >
+                Penilaian Non-Tes
+              </button>
+            </div>
+          </div>
+
           <div className="mb-4 p-4 bg-primary-50/50 dark:bg-primary-900/10 border border-primary-100 dark:border-primary-800/30 rounded-2xl">
             <h4 className="text-xs font-bold text-primary-800 dark:text-primary-300 mb-2 flex items-center gap-1.5 uppercase tracking-wider">
-              <Scale size={14} /> Pedoman Penilaian SAS:
+              <Scale size={14} /> Pedoman Penilaian SAS ({activeTab === 'tes' ? 'TES' : 'NON-TES'}):
             </h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-              <div className="p-2 rounded-lg bg-white/50 dark:bg-slate-800/50 border border-primary-100/50 dark:border-primary-800/20">
-                <p className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">I. Pilihan Ganda</p>
-                <p className="text-xs font-bold text-gray-900 dark:text-white">15 Soal &times; 1 = 15</p>
+            {activeTab === 'tes' ? (
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                <div className="p-2 rounded-lg bg-white/50 dark:bg-slate-800/50 border border-primary-100/50 dark:border-primary-800/20">
+                  <p className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">I. Pilihan Ganda</p>
+                  <p className="text-xs font-bold text-gray-900 dark:text-white">15 Soal &times; 1 = 15</p>
+                </div>
+                <div className="p-2 rounded-lg bg-white/50 dark:bg-slate-800/50 border border-primary-100/50 dark:border-primary-800/20">
+                  <p className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">II. Isian</p>
+                  <p className="text-xs font-bold text-gray-900 dark:text-white">10 Soal &times; 2 = 20</p>
+                </div>
+                <div className="p-2 rounded-lg bg-white/50 dark:bg-slate-800/50 border border-primary-100/50 dark:border-primary-800/20">
+                  <p className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">III. Uraian</p>
+                  <p className="text-xs font-bold text-gray-900 dark:text-white">5 Soal &times; 3 = 15</p>
+                </div>
+                <div className="p-2 rounded-lg bg-primary-600 text-white shadow-md shadow-primary-500/20 flex flex-col justify-center">
+                  <p className="text-[10px] font-bold text-primary-100 uppercase mb-0.5">Nilai Tes</p>
+                  <p className="text-sm font-black">((Σ Skor) / 50) &times; 100</p>
+                </div>
               </div>
-              <div className="p-2 rounded-lg bg-white/50 dark:bg-slate-800/50 border border-primary-100/50 dark:border-primary-800/20">
-                <p className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">II. Isian Singkat</p>
-                <p className="text-xs font-bold text-gray-900 dark:text-white">10 Soal &times; 2 = 20</p>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="p-2 rounded-lg bg-white/50 dark:bg-slate-800/50 border border-primary-100/50 dark:border-primary-800/20">
+                  <p className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Komponen Non-Tes</p>
+                  <p className="text-xs font-bold text-gray-900 dark:text-white">Portofolio, Proyek, Unjuk Kerja, dll.</p>
+                </div>
+                <div className="p-2 rounded-lg bg-emerald-600 text-white shadow-md shadow-emerald-500/20 flex flex-col justify-center">
+                  <p className="text-[10px] font-bold text-emerald-100 uppercase mb-0.5">Skor Non-Tes</p>
+                  <p className="text-sm font-black">0 - 100</p>
+                </div>
               </div>
-              <div className="p-2 rounded-lg bg-white/50 dark:bg-slate-800/50 border border-primary-100/50 dark:border-primary-800/20">
-                <p className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">III. Uraian</p>
-                <p className="text-xs font-bold text-gray-900 dark:text-white">5 Soal &times; 3 = 15</p>
-              </div>
-              <div className="p-2 rounded-lg bg-primary-600 text-white shadow-md shadow-primary-500/20">
-                <p className="text-[10px] font-bold text-primary-100 uppercase mb-1">Skor Maksimal</p>
-                <p className="text-sm font-black">50</p>
-              </div>
-            </div>
-            <div className="mt-3 pt-3 border-t border-primary-100 dark:border-primary-800/30 flex flex-wrap items-center gap-x-6 gap-y-2">
-              <div className="flex items-center gap-2">
-                <div className="px-2 py-0.5 bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 rounded text-[10px] font-bold">RUMUS NA</div>
-                <p className="text-xs font-medium text-gray-700 dark:text-gray-300 italic">NA = (Jumlah Skor / 50) &times; 100</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 rounded text-[10px] font-bold">CONTOH</div>
-                <p className="text-xs font-medium text-gray-700 dark:text-gray-300">Skor 42 &rarr; (42 / 50) &times; 100 = <span className="font-bold text-emerald-600 dark:text-emerald-400">84</span></p>
-              </div>
+            )}
+            <div className="mt-3 pt-2 border-t border-primary-100 dark:border-primary-800/30">
+               <p className="text-[10px] text-gray-500 italic"><strong>NA SAS:</strong> (Nilai Tes + Nilai Non-Tes) / 2</p>
             </div>
           </div>
         </>
@@ -298,22 +347,28 @@ export function SASScores() {
                     Nama {getSortIcon('name')}
                   </div>
                 </th>
-                <th className="p-3 font-semibold text-xs text-center bg-blue-50/30 dark:bg-blue-900/10">PG (0-15)</th>
-                <th className="p-3 font-semibold text-xs text-center bg-blue-50/30 dark:bg-blue-900/10">Isian (0-20)</th>
-                <th className="p-3 font-semibold text-xs text-center bg-blue-50/30 dark:bg-blue-900/10">Uraian (0-15)</th>
+                {activeTab === 'tes' ? (
+                  <>
+                    <th className="p-3 font-semibold text-xs text-center bg-blue-50/30 dark:bg-blue-900/10">PG (0-15)</th>
+                    <th className="p-3 font-semibold text-xs text-center bg-blue-50/30 dark:bg-blue-900/10">Isian (0-20)</th>
+                    <th className="p-3 font-semibold text-xs text-center bg-blue-50/30 dark:bg-blue-900/10">Uraian (0-15)</th>
+                    <th className="p-3 font-semibold text-xs text-center bg-emerald-50/30 dark:bg-emerald-900/10">Nilai Tes</th>
+                  </>
+                ) : (
+                  <th className="p-3 font-semibold text-xs text-center bg-amber-50/30 dark:bg-amber-900/10">Nilai Non-Tes (0-100)</th>
+                )}
                 <th onClick={() => requestSort('score')} className="p-3 font-semibold text-xs text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors group bg-primary-50/20">
                   <div className="flex items-center justify-center gap-1.5">
                     NA SAS {getSortIcon('score')}
                   </div>
                 </th>
-                <th className="p-3 font-semibold text-xs text-center">Nilai Raport</th>
                 <th className="p-3 font-semibold text-xs text-center">Predikat</th>
                 <th className="p-3 font-semibold text-xs text-center">Status</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
               {students.map(s => {
-                const sc = store.sasScores.find(x => x.studentId === s.id && x.classId === classId && x.semester === semester) || { pg: '', isian: '', uraian: '', score: '' };
+                const sc = store.sasScores.find(x => x.studentId === s.id && x.classId === classId && x.semester === semester) || { pg: '', isian: '', uraian: '', nonTes: '', tes: '', score: '' };
                 const avgW = getWeeklyAvg(s.id, classId);
                 const raport = avgW !== null && sc.score !== '' && sc.score !== undefined ? ((avgW + +sc.score) / 2).toFixed(1) : '-';
                 const pred = raport !== '-' ? getPred(+raport) : '-';
@@ -322,32 +377,45 @@ export function SASScores() {
                 return (
                   <tr key={s.id} className="dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-700/30 transition">
                     <td className="p-3 font-medium text-sm">{s.name}</td>
-                    <td className="p-3 text-center">
-                      <input 
-                        type="number" min="0" max="15" 
-                        value={sc.pg || ''} 
-                        onChange={(e) => handleScoreChange(s.id, 'pg', e.target.value)} 
-                        className="w-16 px-2 py-1 text-center rounded-lg border border-gray-200 dark:border-slate-600 dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-primary-500" 
-                      />
-                    </td>
-                    <td className="p-3 text-center">
-                      <input 
-                        type="number" min="0" max="20" 
-                        value={sc.isian || ''} 
-                        onChange={(e) => handleScoreChange(s.id, 'isian', e.target.value)} 
-                        className="w-16 px-2 py-1 text-center rounded-lg border border-gray-200 dark:border-slate-600 dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-primary-500" 
-                      />
-                    </td>
-                    <td className="p-3 text-center">
-                      <input 
-                        type="number" min="0" max="15" 
-                        value={sc.uraian || ''} 
-                        onChange={(e) => handleScoreChange(s.id, 'uraian', e.target.value)} 
-                        className="w-16 px-2 py-1 text-center rounded-lg border border-gray-200 dark:border-slate-600 dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-primary-500" 
-                      />
-                    </td>
+                    {activeTab === 'tes' ? (
+                      <>
+                        <td className="p-3 text-center">
+                          <input 
+                            type="number" min="0" max="15" 
+                            value={sc.pg ?? ''} 
+                            onChange={(e) => handleScoreChange(s.id, 'pg', e.target.value)} 
+                            className="w-16 px-2 py-1 text-center rounded-lg border border-gray-200 dark:border-slate-600 dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-primary-500" 
+                          />
+                        </td>
+                        <td className="p-3 text-center">
+                          <input 
+                            type="number" min="0" max="20" 
+                            value={sc.isian ?? ''} 
+                            onChange={(e) => handleScoreChange(s.id, 'isian', e.target.value)} 
+                            className="w-16 px-2 py-1 text-center rounded-lg border border-gray-200 dark:border-slate-600 dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-primary-500" 
+                          />
+                        </td>
+                        <td className="p-3 text-center">
+                          <input 
+                            type="number" min="0" max="15" 
+                            value={sc.uraian ?? ''} 
+                            onChange={(e) => handleScoreChange(s.id, 'uraian', e.target.value)} 
+                            className="w-16 px-2 py-1 text-center rounded-lg border border-gray-200 dark:border-slate-600 dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-primary-500" 
+                          />
+                        </td>
+                        <td className="p-3 text-center font-bold text-emerald-600 dark:text-emerald-400">{sc.tes || '0'}</td>
+                      </>
+                    ) : (
+                      <td className="p-3 text-center">
+                        <input 
+                           type="number" min="0" max="100" 
+                           value={sc.nonTes ?? ''} 
+                           onChange={(e) => handleScoreChange(s.id, 'nonTes', e.target.value)} 
+                           className="w-24 px-2 py-1 text-center rounded-lg border border-gray-200 dark:border-slate-600 dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-primary-500" 
+                        />
+                      </td>
+                    )}
                     <td className="p-3 text-center font-bold text-primary-600 dark:text-primary-400">{sc.score || '0'}</td>
-                    <td className="p-3 text-center font-bold">{raport}</td>
                     <td className="p-3 text-center">{pred}</td>
                     <td className="p-3 text-center">{status}</td>
                   </tr>
