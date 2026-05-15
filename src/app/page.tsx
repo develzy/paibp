@@ -184,7 +184,7 @@ export default function Home() {
               <div className="text-center mb-10">
                 <img src="./logo.png" alt="Logo PAI" className="w-20 h-20 mx-auto rounded-2xl shadow-xl mb-6 object-cover bg-white" />
                 <h1 className="font-bold text-gray-900 dark:text-white text-2xl tracking-tight">Login Portal</h1>
-                <p className="text-gray-500 dark:text-gray-400 mt-2 text-sm">PAIBP Assessment System v4.0</p>
+                <p className="text-gray-500 dark:text-gray-400 mt-2 text-sm">PAIBP Assessment System v26.0.9</p>
               </div>
               <form onSubmit={handleLogin} className="space-y-6">
                 <div>

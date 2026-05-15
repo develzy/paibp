@@ -212,7 +212,7 @@ export function About() {
     <div className="w-full max-w-4xl mx-auto py-8 px-4 fade-in">
       <div className="text-center mb-12">
         <h1 className="text-3xl md:text-4xl font-black text-gray-900 dark:text-white mb-3 font-serif tracking-tight">
-          PAIBP Assessment <span className="text-primary-600">Smart System v4.0</span>
+          PAIBP Assessment <span className="text-primary-600">Smart System v26.0.9</span>
         </h1>
         <p className="text-sm md:text-base font-bold text-gray-500 dark:text-gray-400 uppercase tracking-[0.2em] max-w-2xl mx-auto leading-relaxed">
           Sistem Penilaian Digital Terpadu untuk Guru Pendidikan Agama Islam & Budi Pekerti
@@ -262,7 +262,7 @@ export function About() {
       </div>
 
       <div className="mt-12 text-center text-[10px] font-black text-gray-400 uppercase tracking-[0.3em]">
-        Documentation Version 4.0.0 &copy; 2026 Develzy.AI
+        Documentation Version 26.0.9 &copy; 2026 Develzy
       </div>
     </div>
   );
