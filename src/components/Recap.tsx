@@ -220,10 +220,12 @@ export function Recap() {
           <p className="p-6 text-center text-gray-400 text-sm">Belum ada siswa</p>
         ) : (
           <table className="w-full text-[10px] border-collapse">
-            <thead className="bg-gray-50 dark:bg-slate-700 sticky top-0 z-10 text-center">
-              <tr className="border-b border-gray-200 dark:border-slate-600">
-                <th rowSpan={3} className="p-1 border-r border-gray-200 dark:border-slate-600 w-8">No</th>
-                <th rowSpan={3} className="p-2 text-left border-r border-gray-200 dark:border-slate-600 min-w-[150px]">Nama Siswa</th>
+            <thead className="sticky top-0 z-20 bg-white dark:bg-slate-800 shadow-sm text-center">
+              <tr className="bg-gray-50 dark:bg-slate-700 border-b border-gray-200 dark:border-slate-600">
+                <th rowSpan={3} className="p-1 border-r border-gray-200 dark:border-slate-600 w-8 sticky top-0 bg-gray-50 dark:bg-slate-700 z-30">No</th>
+                <th rowSpan={3} onClick={() => requestSort('name')} className="p-2 text-left font-semibold text-xs cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700 transition sticky left-0 top-0 bg-gray-50 dark:bg-slate-700 z-30 min-w-[150px] border-r border-gray-200 dark:border-slate-600">
+                  <div className="flex items-center gap-1.5">Nama {getSortIcon('name')}</div>
+                </th>
                 <th colSpan={11} className="p-1 font-bold border-r border-gray-200 dark:border-slate-600 bg-emerald-50/50 dark:bg-emerald-900/10">Sumatif Akhir Lingkup Materi (Wajib)</th>
                 {isKelas6 && <th rowSpan={3} className="p-1 border-r border-gray-200 dark:border-slate-600 text-[9px]">Nilai Praktik</th>}
                 <th colSpan={2} className="p-1 font-bold border-r border-gray-200 dark:border-slate-600 bg-blue-50/50 dark:bg-blue-900/10">SAS (Sumatif Akhir Semester)</th>
@@ -252,7 +254,7 @@ export function Recap() {
               {rows.map((r, i) => (
                 <tr key={i} className="dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-700/30 transition border-b border-gray-100 dark:border-slate-800">
                   <td className="p-1 border-r border-gray-100 dark:border-slate-800">{i + 1}</td>
-                  <td className="p-1 text-left font-medium border-r border-gray-100 dark:border-slate-800">{r.name}</td>
+                  <td className="p-1 text-left font-medium border-r border-gray-100 dark:border-slate-800 sticky left-0 bg-white dark:bg-slate-800 z-10">{r.name}</td>
                   {Array.from({ length: 10 }).map((_, j) => (
                     <td key={j} className="p-1 border-r border-gray-100 dark:border-slate-800">{r['m' + (j + 1)]}</td>
                   ))}

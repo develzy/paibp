@@ -164,8 +164,8 @@ export function AttendanceNotes() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-gray-50 dark:bg-slate-700 sticky top-0 z-10">
-                <tr>
+              <thead className="sticky top-0 z-20 bg-white dark:bg-slate-800 shadow-sm">
+                <tr className="bg-gray-50 dark:bg-slate-700/50">
                   <th className="p-3 text-left font-semibold text-xs min-w-[200px]">Nama Peserta Didik</th>
                   <th className="p-3 font-semibold text-xs text-center w-20">Sakit (S)</th>
                   <th className="p-3 font-semibold text-xs text-center w-20">Izin (I)</th>

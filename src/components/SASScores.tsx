@@ -316,8 +316,8 @@ export function SASScores() {
           <p className="p-6 text-center text-gray-400 text-sm">Belum ada siswa di kelas ini</p>
         ) : (
           <table className="w-full text-sm">
-            <thead className="bg-gray-50 dark:bg-slate-700 sticky top-0 z-10">
-              <tr>
+            <thead className="sticky top-0 z-20 bg-white dark:bg-slate-800 shadow-sm">
+              <tr className="bg-gray-50 dark:bg-slate-700/50">
                 <th onClick={() => requestSort('name')} className="p-3 text-left font-semibold text-xs cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors group">
                   <div className="flex items-center gap-1.5">
                     Nama {getSortIcon('name')}

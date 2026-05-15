@@ -244,9 +244,9 @@ export function Students() {
         </select>
       </div>
 
-      <div className="glass rounded-2xl overflow-x-auto shadow-sm w-full">
+      <div className="glass rounded-2xl overflow-x-auto shadow-sm w-full max-h-[60vh]">
         <table className="w-full text-sm">
-          <thead>
+          <thead className="sticky top-0 z-20 bg-white dark:bg-slate-800 shadow-sm">
             <tr className="bg-gray-50 dark:bg-slate-700/50 text-left">
               <th onClick={() => handleSort('nis')} className="p-3 font-semibold text-gray-600 dark:text-gray-300 text-xs cursor-pointer hover:bg-gray-200 dark:hover:bg-slate-600 transition group select-none">
                 <div className="flex items-center">NIS <SortIcon columnKey="nis" /></div>

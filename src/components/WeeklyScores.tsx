@@ -270,9 +270,9 @@ export function WeeklyScores() {
           <p className="p-6 text-center text-gray-400 text-sm">Belum ada siswa di kelas ini</p>
         ) : (
           <table className="w-full text-sm">
-            <thead>
-              <tr>
-                <th onClick={() => requestSort('name')} className="p-2 text-left font-semibold text-xs cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700 transition sticky left-0 bg-white dark:bg-slate-800 z-10 w-[150px]">
+            <thead className="sticky top-0 z-20 bg-white dark:bg-slate-800 shadow-sm">
+              <tr className="bg-gray-50/50 dark:bg-slate-700/50">
+                <th onClick={() => requestSort('name')} className="p-2 text-left font-semibold text-xs cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700 transition sticky left-0 top-0 bg-gray-50 dark:bg-slate-800 z-30 w-[150px] border-b border-gray-200 dark:border-slate-700">
                   <div className="flex items-center gap-1.5">Nama {getSortIcon('name')}</div>
                 </th>
                 {Array.from({ length: 5 }).map((_, i) => {
@@ -318,7 +318,7 @@ export function WeeklyScores() {
 
                 return (
                   <tr key={s.id} className="dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-700/30 transition">
-                    <td className="p-2 font-medium text-xs sticky left-0 bg-white dark:bg-slate-800">{s.name}</td>
+                    <td className="p-2 font-medium text-xs sticky left-0 bg-white dark:bg-slate-800 z-10 border-r border-gray-100 dark:border-slate-700">{s.name}</td>
                     {Array.from({ length: 5 }).map((_, i) => {
                       const weekIdx = semester === 1 ? i + 1 : i + 6;
                       return (
