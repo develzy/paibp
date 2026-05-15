@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { getCurrentAcademicYear } from '@/lib/data';
+import { getCurrentAcademicYear, getCurrentSemester } from '@/lib/data';
 
 export interface ClassData { 
   id: string; 
@@ -33,6 +33,7 @@ interface AppState {
   asajScores: ASAJScore[];
   attendanceNotes: AttendanceNote[];
   activeYear: string;
+  activeSemester: number;
   setClasses: (updater: (prev: ClassData[]) => ClassData[]) => void;
   setStudents: (updater: (prev: StudentData[]) => StudentData[]) => void;
   setWeeklyScores: (updater: (prev: WeeklyScore[]) => WeeklyScore[]) => void;
@@ -41,6 +42,7 @@ interface AppState {
   setASAJScores: (updater: (prev: ASAJScore[]) => ASAJScore[]) => void;
   setAttendanceNotes: (updater: (prev: AttendanceNote[]) => AttendanceNote[]) => void;
   setActiveYear: (year: string) => void;
+  setActiveSemester: (semester: number) => void;
 }
 
 export const useStore = create<AppState>()(
@@ -54,6 +56,7 @@ export const useStore = create<AppState>()(
       asajScores: [],
       attendanceNotes: [],
       activeYear: getCurrentAcademicYear(),
+      activeSemester: getCurrentSemester(),
       setClasses: (updater) => set((state) => ({ classes: updater(state.classes) })),
       setStudents: (updater) => set((state) => ({ students: updater(state.students) })),
       setWeeklyScores: (updater) => set((state) => ({ weeklyScores: updater(state.weeklyScores) })),
@@ -62,6 +65,7 @@ export const useStore = create<AppState>()(
       setASAJScores: (updater) => set((state) => ({ asajScores: updater(state.asajScores) })),
       setAttendanceNotes: (updater) => set((state) => ({ attendanceNotes: updater(state.attendanceNotes) })),
       setActiveYear: (year) => set({ activeYear: year }),
+      setActiveSemester: (semester) => set({ activeSemester: semester }),
     }),
     { name: 'paibp_store' }
   )

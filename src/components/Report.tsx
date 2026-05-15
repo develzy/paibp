@@ -10,7 +10,7 @@ import { toast } from "react-hot-toast";
 export function Report() {
   const store = useStore();
   const [classId, setClassId] = useState("");
-  const [semester, setSemester] = useState<number>(1);
+  const semester = store.activeSemester;
   const [studentId, setStudentId] = useState("");
   const [search, setSearch] = useState("");
   const [alertData, setAlertData] = useState<{ title: string, message: string } | null>(null);
@@ -454,13 +454,6 @@ export function Report() {
           <option value="">Pilih Kelas</option>
           {filteredClasses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
         </select>
-        
-        <div>
-          <select value={semester} onChange={(e) => setSemester(Number(e.target.value))} className="px-3 py-2 rounded-xl border border-gray-200 dark:border-slate-600 dark:bg-slate-800 dark:text-white outline-none transition text-sm">
-            <option value="1">Semester 1</option>
-            <option value="2">Semester 2</option>
-          </select>
-        </div>
         
         {isValidClass && (
           <input 

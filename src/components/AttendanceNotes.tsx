@@ -8,7 +8,7 @@ import { Search, Save, Info, Sparkles, Loader2 } from "lucide-react";
 export function AttendanceNotes() {
   const store = useStore();
   const [classId, setClassId] = useState("");
-  const [semester, setSemester] = useState<number>(1);
+  const semester = store.activeSemester;
   const [search, setSearch] = useState("");
   const [loadingAi, setLoadingAi] = useState<string | null>(null);
 
@@ -130,16 +130,6 @@ export function AttendanceNotes() {
           >
             <option value="">Pilih Kelas</option>
             {filteredClasses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-          </select>
-        </div>
-        <div>
-          <select 
-            value={semester} 
-            onChange={(e) => setSemester(Number(e.target.value))} 
-            className="px-4 py-2 rounded-xl border border-gray-200 dark:border-slate-600 dark:bg-slate-800 dark:text-white outline-none transition text-sm shadow-sm"
-          >
-            <option value="1">Semester 1</option>
-            <option value="2">Semester 2</option>
           </select>
         </div>
         {isValidClass && (

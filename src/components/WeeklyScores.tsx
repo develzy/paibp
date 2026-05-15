@@ -10,7 +10,7 @@ import { toast } from "react-hot-toast";
 export function WeeklyScores() {
   const store = useStore();
   const [classId, setClassId] = useState("");
-  const [semester, setSemester] = useState<number>(1);
+  const semester = store.activeSemester;
   const weeksCount = 5; // Show 5 chapters per semester
   const [showImport, setShowImport] = useState(false);
   const [search, setSearch] = useState("");
@@ -239,12 +239,6 @@ export function WeeklyScores() {
           <select value={classId} onChange={(e) => setClassId(e.target.value)} className="px-3 py-2 rounded-xl border border-gray-200 dark:border-slate-600 dark:bg-slate-800 dark:text-white outline-none transition text-sm">
             <option value="">Pilih Kelas</option>
             {filteredClasses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-          </select>
-        </div>
-        <div>
-          <select value={semester} onChange={(e) => setSemester(Number(e.target.value))} className="px-3 py-2 rounded-xl border border-gray-200 dark:border-slate-600 dark:bg-slate-800 dark:text-white outline-none transition text-sm">
-            <option value="1">Semester 1</option>
-            <option value="2">Semester 2</option>
           </select>
         </div>
         <button onClick={exportWeekly} className="px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-medium flex items-center gap-1.5 shadow-sm transition text-sm">

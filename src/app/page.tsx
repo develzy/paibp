@@ -337,15 +337,26 @@ function MainApp({ session, setSession }: { session: any, setSession: any }) {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <select 
-              value={store.activeYear} 
-              onChange={(e) => store.setActiveYear(e.target.value)}
-              className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 text-sm font-semibold dark:text-gray-200 outline-none focus:ring-2 focus:ring-primary-500 hidden sm:block"
-            >
-              {availableYears.map(year => (
-                <option key={year} value={year}>{year}</option>
-              ))}
-            </select>
+            <div className="flex items-center gap-2">
+              <select 
+                value={store.activeYear} 
+                onChange={(e) => store.setActiveYear(e.target.value)}
+                className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 text-sm font-semibold dark:text-gray-200 outline-none focus:ring-2 focus:ring-primary-500 hidden sm:block shadow-sm"
+              >
+                {availableYears.map(year => (
+                  <option key={year} value={year}>{year}</option>
+                ))}
+              </select>
+
+              <select 
+                value={store.activeSemester} 
+                onChange={(e) => store.setActiveSemester(Number(e.target.value))}
+                className="px-3 py-1.5 rounded-lg border border-primary-100 dark:border-slate-700 bg-primary-50 dark:bg-slate-800 text-sm font-bold text-primary-700 dark:text-primary-300 outline-none focus:ring-2 focus:ring-primary-500 shadow-sm"
+              >
+                <option value={1}>Smt 1</option>
+                <option value={2}>Smt 2</option>
+              </select>
+            </div>
             
             <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold shadow-sm transition-all ${isOnline ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-rose-50 border-rose-100 text-rose-600'}`}>
               {isOnline ? <Wifi size={14} className="animate-pulse" /> : <WifiOff size={14} />}

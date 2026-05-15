@@ -35,7 +35,7 @@ export function Dashboard() {
 
   if (!mounted) return null;
 
-  const semester = 1; // Default to Semester 1 
+  const semester = store.activeSemester;
 
   const filteredClasses = store.classes.filter(c => c.year === store.activeYear);
   const classIds = new Set(filteredClasses.map(c => c.id));

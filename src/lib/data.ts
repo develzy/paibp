@@ -15,6 +15,13 @@ export function saveProfile(p: any) {
   DB.setObj('profile', p); 
 }
 
+export function getCurrentSemester() {
+  const month = new Date().getMonth() + 1;
+  // Semester 1: Juli - Desember (7-12)
+  // Semester 2: Januari - Juni (1-6)
+  return (month >= 7) ? 1 : 2;
+}
+
 export function getCurrentAcademicYear() {
   const now = new Date();
   const year = now.getFullYear();
