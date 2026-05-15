@@ -153,9 +153,12 @@ export function Report() {
       <div class="page">
         <div class="watermark">Aplikasi PAIBP Assessment<br/>Smart System v4.0</div>
         <div class="content">
-          <div class="header">
-            <h1 class="school-name">SDN KALISALAK 01</h1>
-            <p class="school-info">Dinas Pendidikan dan Kebudayaan Kabupaten Banyumas</p>
+          <div class="header" style="display: flex; align-items: center; justify-content: center; gap: 20px;">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/9/9c/Logo_of_Ministry_of_Education_and_Culture_of_Republic_of_Indonesia.svg" style="width: 70px; height: 70px;" />
+            <div style="text-align: center;">
+              <h1 class="school-name">SDN KALISALAK 01</h1>
+              <p class="school-info">Dinas Pendidikan dan Kebudayaan Kabupaten Banyumas</p>
+            </div>
           </div>
           <div class="report-title">LAPORAN HASIL BELAJAR PESERTA DIDIK</div>
           <div class="student-info">
@@ -228,16 +231,21 @@ export function Report() {
       doc.text("Aplikasi PAIBP Assessment", 105, 150, { align: "center", angle: 45 });
       doc.text("Smart System v4.0", 105, 170, { align: "center", angle: 45 });
 
+      const logoUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Logo_of_Ministry_of_Education_and_Culture_of_Republic_of_Indonesia.svg/512px-Logo_of_Ministry_of_Education_and_Culture_of_Republic_of_Indonesia.svg.png";
+      
+      // Add Logo to PDF
+      doc.addImage(logoUrl, 'PNG', margin, y - 5, 15, 15);
+
       doc.setTextColor(6, 78, 59);
       doc.setFontSize(22);
       doc.setFont("serif", "bold");
-      doc.text("SDN KALISALAK 01", 105, y, { align: "center" });
+      doc.text("SDN KALISALAK 01", 112, y, { align: "center" });
       
       y += 8;
       doc.setTextColor(100, 116, 139);
       doc.setFontSize(10);
       doc.setFont("helvetica", "bold");
-      doc.text("PAIBP Assessment Smart System v4.0", 105, y, { align: "center" });
+      doc.text("PAIBP Assessment Smart System v4.0", 112, y, { align: "center" });
       
       y += 5;
       doc.setDrawColor(226, 232, 240);
@@ -365,9 +373,12 @@ export function Report() {
         </div>
         
         <div className="relative z-10">
-          <div className="text-center border-b-2 border-double border-slate-200 dark:border-slate-700 pb-6 mb-8">
-            <h1 className="text-3xl font-serif font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-1">SDN KALISALAK 01</h1>
-            <p className="text-[10px] uppercase tracking-[3px] text-slate-500 dark:text-gray-400 font-bold">PAIBP Assessment Smart System v4.0</p>
+          <div className="flex items-center justify-center gap-6 border-b-2 border-double border-slate-200 dark:border-slate-700 pb-6 mb-8">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/9/9c/Logo_of_Ministry_of_Education_and_Culture_of_Republic_of_Indonesia.svg" alt="Logo" className="w-16 h-16 object-contain" />
+            <div className="text-center">
+              <h1 className="text-3xl font-serif font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-1">SDN KALISALAK 01</h1>
+              <p className="text-[10px] uppercase tracking-[3px] text-slate-500 dark:text-gray-400 font-bold">PAIBP Assessment Smart System v4.0</p>
+            </div>
           </div>
 
           <div className="text-center mb-8">
