@@ -27,58 +27,10 @@ export function Report() {
   const cls = store.classes.find(c => c.id === classId);
   const profile = getProfile();
 
-  const getWeeklyAvg = (sid: string, cid: string, semId?: number) => {
-    const sems = store.weeklyScores.filter(x => x.studentId === sid && x.classId === cid && (semId ? x.semester === semId : x.semester === semester));
-    if (!sems.length) return null;
-    let sum = 0, count = 0;
-    sems.forEach(sem => {
-      const nw = sem.weeks || 20;
-      for (let i = 1; i <= nw; i++) {
-        const v = sem['m' + i];
-        if (v !== '' && v !== undefined && v !== null) { sum += +v; count++; }
-      }
-    });
-    return count > 0 ? sum / count : null;
-  };
-
-  const getPracticeVal = (pr: any, cat: string) => {
-    const val = pr[cat];
-    if (val === undefined || val === null || val === '') return '-';
-    // Fallback if old data is object
-    if (typeof val === 'object') {
-      const vals = Object.values(val).filter(v => v !== '') as number[];
-      return vals.length ? (vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1) : '-';
-    }
-    return Number(val).toFixed(1);
-  };
-
-  const calcFinalPractice = (pr: any) => {
-    const w = getPracticeVal(pr, 'wudhu');
-    const q = getPracticeVal(pr, 'quran');
-    const sh = getPracticeVal(pr, 'sholat');
-    const t = getPracticeVal(pr, 'tayamum');
-    if ([w, q, sh, t].includes('-')) return '-';
-    return ((+w * 0.25) + (+q * 0.25) + (+sh * 0.35) + (+t * 0.15)).toFixed(1);
-  };
-
   const getPred = (v: number) => (v >= 90 ? 'A' : v >= 80 ? 'B' : v >= 75 ? 'C' : 'D');
 
   const getReportData = (sid: string) => {
     const student = store.students.find(x => x.id === sid);
-    const avgW = getWeeklyAvg(sid, classId);
-    const sas = store.sasScores.find(x => x.studentId === sid && x.classId === classId && x.semester === semester)?.score || '';
-    const raport = avgW !== null && sas !== '' ? ((avgW + +sas) / 2) : null;
-    const pr = store.practiceScores.find(x => x.studentId === sid && x.classId === classId);
-    const praktik = pr ? calcFinalPractice(pr) : '-';
-    const isK6 = cls?.name.includes('6');
-    const asajData = isK6 ? (() => {
-      const a = store.asajScores.find(x => x.studentId === sid);
-      if (!a) return { nilai: '-' };
-      if (a.pg === '' || a.essay === '') return { nilai: '-' };
-      return { nilai: (((+a.pg + +a.essay) / 50) * 100).toFixed(1) };
-    })() : { nilai: '-' };
-    const asaj = asajData.nilai;
-
     const sem1 = store.weeklyScores.find(x => x.studentId === sid && x.classId === classId && x.semester === 1);
     const sem2 = store.weeklyScores.find(x => x.studentId === sid && x.classId === classId && x.semester === 2);
     
@@ -94,9 +46,42 @@ export function Report() {
       return cnt > 0 ? (sum / cnt).toFixed(1) : '-';
     }
     
-    const avgW = semAvg(semester === 1 ? sem1 : sem2);
+    const avgWStr = semAvg(semester === 1 ? sem1 : sem2);
+    const avgW = avgWStr === '-' ? null : Number(avgWStr);
 
-    // Auto-Description Logic
+    const sas = store.sasScores.find(x => x.studentId === sid && x.classId === classId && x.semester === semester)?.score || '';
+    const raport = avgW !== null && sas !== '' ? ((avgW + +sas) / 2) : null;
+    const pr = store.practiceScores.find(x => x.studentId === sid && x.classId === classId);
+    
+    const getPracticeVal = (pr: any, cat: string) => {
+      const val = pr?.[cat];
+      if (val === undefined || val === null || val === '') return '-';
+      if (typeof val === 'object') {
+        const vals = Object.values(val).filter(v => v !== '') as number[];
+        return vals.length ? (vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1) : '-';
+      }
+      return Number(val).toFixed(1);
+    };
+
+    const calcFinalPractice = (pr: any) => {
+      const w = getPracticeVal(pr, 'wudhu');
+      const q = getPracticeVal(pr, 'quran');
+      const sh = getPracticeVal(pr, 'sholat');
+      const t = getPracticeVal(pr, 'tayamum');
+      if ([w, q, sh, t].includes('-')) return '-';
+      return ((+w * 0.25) + (+q * 0.25) + (+sh * 0.35) + (+t * 0.15)).toFixed(1);
+    };
+
+    const praktik = pr ? calcFinalPractice(pr) : '-';
+    const isK6 = cls?.name.includes('6');
+    const asajData = isK6 ? (() => {
+      const a = store.asajScores.find(x => x.studentId === sid);
+      if (!a) return { nilai: '-' };
+      if (a.pg === '' || a.essay === '') return { nilai: '-' };
+      return { nilai: (((+a.pg + +a.essay) / 50) * 100).toFixed(1) };
+    })() : { nilai: '-' };
+    const asaj = asajData.nilai;
+
     let autoDesc = "";
     if (raport === null) {
       autoDesc = "Data nilai belum lengkap untuk dilakukan evaluasi capaian kompetensi.";
@@ -176,13 +161,11 @@ export function Report() {
               <tr><th style="width:40px;">NO</th><th>ASPEK PENILAIAN</th><th style="text-align:center;">NILAI</th><th style="text-align:center;">PREDIKAT</th></tr>
             </thead>
             <tbody>
-              <tr><td>1</td><td>Rata-rata Nilai Semester 1</td><td class="val-cell">${data.avgSem1}</td><td class="pred-cell">${data.avgSem1 !== '-' ? getPred(+data.avgSem1) : '-'}</td></tr>
-              <tr><td>2</td><td>Rata-rata Nilai Semester 2</td><td class="val-cell">${data.avgSem2}</td><td class="pred-cell">${data.avgSem2 !== '-' ? getPred(+data.avgSem2) : '-'}</td></tr>
-              <tr><td>3</td><td>NA Sumatif Lingkup Materi</td><td class="val-cell">${data.avgW?.toFixed(1) || '-'}</td><td class="pred-cell">${data.avgW ? getPred(data.avgW) : '-'}</td></tr>
-              <tr><td>4</td><td>Sumatif Akhir Semester (SAS)</td><td class="val-cell">${data.sas || '-'}</td><td class="pred-cell">${data.sas ? getPred(+data.sas) : '-'}</td></tr>
-              <tr class="highlight-row"><td>5</td><td>NILAI AKHIR RAPORT</td><td class="val-cell">${data.raport?.toFixed(1) || '-'}</td><td class="pred-cell">${data.raport ? getPred(+data.raport) : '-'}</td></tr>
-              <tr><td>6</td><td>Penilaian Praktik Keagamaan</td><td class="val-cell">${data.praktik}</td><td class="pred-cell">${data.praktik !== '-' ? getPred(+data.praktik) : '-'}</td></tr>
-              ${data.isK6 ? `<tr><td>7</td><td>Asesmen Sumatif Akhir Jenjang</td><td class="val-cell">${data.asaj}</td><td class="pred-cell">${data.asaj !== '-' ? getPred(+data.asaj) : '-'}</td></tr>` : ''}
+              <tr><td>1</td><td>NA Sumatif Lingkup Materi</td><td class="val-cell">${data.avgW?.toFixed(1) || '-'}</td><td class="pred-cell">${data.avgW ? getPred(data.avgW) : '-'}</td></tr>
+              <tr><td>2</td><td>Sumatif Akhir Semester (SAS)</td><td class="val-cell">${data.sas || '-'}</td><td class="pred-cell">${data.sas ? getPred(+data.sas) : '-'}</td></tr>
+              <tr class="highlight-row"><td>3</td><td>NILAI AKHIR RAPORT</td><td class="val-cell">${data.raport?.toFixed(1) || '-'}</td><td class="pred-cell">${data.raport ? getPred(+data.raport) : '-'}</td></tr>
+              <tr><td>4</td><td>Penilaian Praktik Keagamaan</td><td class="val-cell">${data.praktik}</td><td class="pred-cell">${data.praktik !== '-' ? getPred(+data.praktik) : '-'}</td></tr>
+              ${data.isK6 ? `<tr><td>5</td><td>Asesmen Sumatif Akhir Jenjang</td><td class="val-cell">${data.asaj}</td><td class="pred-cell">${data.asaj !== '-' ? getPred(+data.asaj) : '-'}</td></tr>` : ''}
             </tbody>
           </table>
           <div class="description-box">
@@ -204,12 +187,10 @@ export function Report() {
       printWindow.document.write(htmlContent);
       printWindow.document.close();
       
-      // Wait for assets to load then trigger print
       printWindow.onload = function() {
         printWindow.focus();
         setTimeout(() => {
           printWindow.print();
-          // We don't close immediately to let the user finish the save dialog
         }, 300);
       };
     }
@@ -229,14 +210,12 @@ export function Report() {
       const margin = 20;
       let y = margin;
 
-      // Watermark
       doc.setTextColor(240, 240, 240);
       doc.setFontSize(30);
       doc.setFont("helvetica", "bold");
       doc.text("Aplikasi PAIBP Assessment", 105, 150, { align: "center", angle: 45 });
       doc.text("Smart System v4.0", 105, 170, { align: "center", angle: 45 });
 
-      // Header
       doc.setTextColor(6, 78, 59);
       doc.setFontSize(22);
       doc.setFont("serif", "bold");
@@ -254,7 +233,6 @@ export function Report() {
       doc.line(margin, y, 210 - margin, y);
       doc.line(margin, y + 1, 210 - margin, y + 1);
 
-      // Title
       y += 15;
       doc.setTextColor(15, 23, 42);
       doc.setFontSize(14);
@@ -262,7 +240,6 @@ export function Report() {
       doc.text("LAPORAN HASIL BELAJAR PESERTA DIDIK", 105, y, { align: "center" });
       doc.line(65, y + 1, 145, y + 1);
 
-      // Student Info
       y += 15;
       doc.setFontSize(10);
       doc.setFont("helvetica", "normal");
@@ -274,7 +251,6 @@ export function Report() {
       y += 6;
       doc.text(`Tahun Ajaran : ${cls.year}`, 140, y);
 
-      // Table Header
       y += 10;
       doc.setFillColor(248, 250, 252);
       doc.rect(margin, y, 170, 10, 'F');
@@ -286,15 +262,15 @@ export function Report() {
       doc.text("NILAI", 155, y + 7, { align: "center" });
       doc.text("PREDIKAT", 180, y + 7, { align: "center" });
 
-      // Table Body
       const rows = [
-        ["1", "Rata-rata Nilai Semester 1", data.avgSem1, data.avgSem1 !== '-' ? getPred(+data.avgSem1) : '-'],
-        ["2", "Rata-rata Nilai Semester 2", data.avgSem2, data.avgSem2 !== '-' ? getPred(+data.avgSem2) : '-'],
-        ["3", "NA Sumatif Lingkup Materi", data.avgW?.toFixed(1) || '-', data.avgW ? getPred(data.avgW) : '-'],
-        ["4", "Sumatif Akhir Semester (SAS)", data.sas || '-', data.sas ? getPred(+data.sas) : '-'],
-        ["5", "NILAI AKHIR RAPORT", data.raport?.toFixed(1) || '-', data.raport ? getPred(+data.raport) : '-'],
-        ["6", "Penilaian Praktik Keagamaan", data.praktik, data.praktik !== '-' ? getPred(+data.praktik) : '-'],
+        ["1", "NA Sumatif Lingkup Materi", data.avgW?.toFixed(1) || '-', data.avgW ? getPred(data.avgW) : '-'],
+        ["2", "Sumatif Akhir Semester (SAS)", data.sas || '-', data.sas ? getPred(+data.sas) : '-'],
+        ["3", "NILAI AKHIR RAPORT", data.raport?.toFixed(1) || '-', data.raport ? getPred(+data.raport) : '-'],
+        ["4", "Penilaian Praktik Keagamaan", data.praktik, data.praktik !== '-' ? getPred(+data.praktik) : '-'],
       ];
+      if (data.isK6) {
+        rows.push(["5", "Asesmen Sumatif Akhir Jenjang", data.asaj, data.asaj !== '-' ? getPred(+data.asaj) : '-']);
+      }
 
       y += 10;
       doc.setFont("helvetica", "normal");
@@ -314,7 +290,6 @@ export function Report() {
         y += 10;
       });
 
-      // Description
       y += 5;
       doc.setFont("helvetica", "bold");
       doc.text("CAPAIAN KOMPETENSI (DESKRIPSI)", margin, y);
@@ -324,7 +299,6 @@ export function Report() {
       doc.text(splitDesc, margin, y);
       y += (splitDesc.length * 5) + 10;
 
-      // Signatures
       const sigY = y;
       doc.setFont("helvetica", "normal");
       doc.text("Orang Tua/Wali,", margin + 5, sigY);
@@ -350,7 +324,6 @@ export function Report() {
       toast.success('Raport berhasil didownload!');
     };
 
-    // Load library dynamically
     // @ts-ignore
     if (window.jspdf) {
       runExport();
@@ -375,12 +348,10 @@ export function Report() {
     const data = getReportData(s.id);
     return (
       <div id="report-card-capture" className="bg-white dark:bg-slate-900 shadow-2xl rounded-sm border-t-[6px] border-primary-600 p-8 lg:p-12 max-w-[850px] mx-auto text-slate-800 dark:text-slate-100 font-sans print:shadow-none print:border-none print:p-0 relative overflow-hidden">
-        {/* Watermark */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 -rotate-45 text-slate-900/[0.03] dark:text-white/[0.02] font-black text-4xl lg:text-5xl pointer-events-none z-0 whitespace-nowrap text-center">
           Aplikasi PAIBP Assessment<br/>Smart System v4.0
         </div>
         
-        {/* Header Formal */}
         <div className="relative z-10">
           <div className="text-center border-b-2 border-double border-slate-200 dark:border-slate-700 pb-6 mb-8">
             <h1 className="text-3xl font-serif font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-1">SDN KALISALAK 01</h1>
@@ -391,7 +362,6 @@ export function Report() {
             <h2 className="text-lg font-bold underline decoration-2 underline-offset-4 text-slate-900 dark:text-white">LAPORAN HASIL BELAJAR PESERTA DIDIK</h2>
           </div>
 
-          {/* Info Peserta Didik */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10 bg-slate-50/50 dark:bg-slate-800/30 p-6 rounded-xl border border-slate-100 dark:border-slate-700 text-sm">
             <div className="space-y-2">
               <div className="flex"><span className="w-24 text-slate-500 font-medium">Nama Siswa</span><span className="font-bold">: {s.name}</span></div>
@@ -404,7 +374,6 @@ export function Report() {
             </div>
           </div>
 
-          {/* Tabel Nilai */}
           <div className="overflow-hidden border border-slate-200 dark:border-slate-700 rounded-lg mb-8 bg-white/50 dark:bg-transparent">
             <table className="w-full text-sm">
               <thead>
@@ -425,7 +394,6 @@ export function Report() {
             </table>
           </div>
 
-          {/* Deskripsi */}
           <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden mb-12 bg-white/50 dark:bg-transparent">
             <div className="bg-slate-50 dark:bg-slate-800 px-4 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest border-b border-slate-200 dark:border-slate-700">Capaian Kompetensi (Deskripsi)</div>
             <div className="p-4 text-sm leading-relaxed italic text-slate-600 dark:text-slate-300">
@@ -433,7 +401,6 @@ export function Report() {
             </div>
           </div>
 
-          {/* Tanda Tangan */}
           <div className="grid grid-cols-3 gap-4 text-sm text-center">
             <div className="flex flex-col justify-between h-32">
               <p>Orang Tua/Wali,</p>
