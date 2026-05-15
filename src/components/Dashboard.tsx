@@ -38,25 +38,25 @@ export function Dashboard() {
     return totalCount > 0 ? totalSum / totalCount : null;
   };
 
-  const allScores = activeStudents.map((s) => {
+  const studentScores = activeStudents.map((s) => {
     const avgW = getWeeklyAvg(s.id, s.classId);
     const sas = store.sasScores.find((x) => x.studentId === s.id && x.classId === s.classId);
     if (avgW === null || !sas || sas.score === '' || sas.score === undefined) return null;
-    return (avgW + +sas.score) / 2;
-  }).filter((s) => s !== null && s > 0) as number[];
+    return { id: s.id, name: s.name, classId: s.classId, score: (avgW + +sas.score) / 2 };
+  }).filter((s) => s !== null && s.score > 0) as any[];
 
-  const avgScore = allScores.length ? (allScores.reduce((a, b) => a + b, 0) / allScores.length).toFixed(1) : 0;
-  const tuntas = allScores.filter((s) => s >= 75).length;
-  const pct = allScores.length ? Math.round((tuntas / allScores.length) * 100) : 0;
+  const avgScore = studentScores.length ? (studentScores.reduce((a, b) => a + b.score, 0) / studentScores.length).toFixed(1) : 0;
+  const tuntas = studentScores.filter((s) => s.score >= 75).length;
+  const pct = studentScores.length ? Math.round((tuntas / studentScores.length) * 100) : 0;
 
   const ranges = [
-    { l: 'Sangat Baik (90-100)', min: 90, max: 100, c: 'bg-gradient-to-r from-emerald-400 to-emerald-600' },
-    { l: 'Baik (80-89)', min: 80, max: 89, c: 'bg-gradient-to-r from-blue-400 to-blue-600' },
-    { l: 'Cukup (75-79)', min: 75, max: 79, c: 'bg-gradient-to-r from-amber-400 to-amber-600' },
-    { l: 'Kurang (<75)', min: 0, max: 74, c: 'bg-gradient-to-r from-rose-400 to-rose-600' }
+    { l: 'Sangat Baik (90-100)', min: 90, max: 100, c: 'bg-emerald-500' },
+    { l: 'Baik (80-89)', min: 80, max: 89, c: 'bg-blue-500' },
+    { l: 'Cukup (75-79)', min: 75, max: 79, c: 'bg-amber-500' },
+    { l: 'Kurang (<75)', min: 0, max: 74, c: 'bg-rose-500' }
   ];
 
-  const maxBar = Math.max(...ranges.map(r => allScores.filter(s => s >= r.min && s <= r.max).length), 1);
+  const maxBar = Math.max(...ranges.map(r => studentScores.filter(s => s.score >= r.min && s.score <= r.max).length), 1);
   const maxStudents = Math.max(...filteredClasses.map(c => activeStudents.filter(s => s.classId === c.id).length), 1);
 
   return (
@@ -68,47 +68,70 @@ export function Dashboard() {
         <StatCard icon={CheckCircle} label="Ketuntasan" value={pct + '%'} bg="bg-amber-50 dark:bg-amber-900/20" iconColor="text-amber-600 dark:text-amber-400" />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="glass rounded-2xl p-5 shadow-sm">
-          <h3 className="font-semibold mb-4 text-gray-900 dark:text-white text-sm flex items-center gap-2 font-serif">
-            <BarChart3 size={17} className="text-primary-600" /> Distribusi Nilai
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="glass rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-slate-800">
+          <h3 className="font-semibold mb-6 text-gray-900 dark:text-white text-sm flex items-center gap-2 font-serif">
+            <BarChart3 size={17} className="text-primary-600" /> Distribusi Nilai & Sampel Siswa
           </h3>
-          <div className="space-y-3.5 mt-2">
+          <div className="space-y-6">
             {ranges.map((r, idx) => {
-              const count = allScores.filter(s => s >= r.min && s <= r.max).length;
-              const w = Math.max((count / maxBar) * 100, 5);
+              const studentsInRange = studentScores.filter(s => s.score >= r.min && s.score <= r.max);
+              const count = studentsInRange.length;
+              const w = Math.max((count / maxBar) * 100, 2);
+              
+              // Get sample names: max 3 per class
+              const sampleNames: string[] = [];
+              filteredClasses.forEach(c => {
+                const classStudents = studentsInRange.filter(s => s.classId === c.id).slice(0, 3);
+                classStudents.forEach(s => sampleNames.push(`${s.name} (${c.name.split(' ')[1] || c.name})`));
+              });
+
               return (
-                <div key={idx} className="flex items-center gap-3">
-                  <div className="w-32 flex flex-col">
-                    <span className="text-xs font-bold text-gray-700 dark:text-gray-200">{r.l.split(' ')[0]} {r.l.split(' ')[1] === 'Baik' ? 'Baik' : ''}</span>
-                    <span className="text-[10px] text-gray-500">{r.l.split(' ').pop()}</span>
-                  </div>
-                  <div className="flex-1 bg-gray-100 dark:bg-slate-700/50 rounded-full h-5 overflow-hidden border border-gray-200/50 dark:border-slate-700/50">
-                    <div className={`h-full ${r.c} rounded-full flex items-center justify-end pr-2.5 transition-all shadow-inner`} style={{ width: `${w}%` }}>
-                      <span className="text-[10px] text-white font-bold drop-shadow-sm">{count}</span>
+                <div key={idx} className="space-y-2">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-2 h-2 rounded-full ${r.c}`}></div>
+                      <span className="text-[11px] font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider">{r.l.split(' (')[0]}</span>
                     </div>
+                    <span className="text-[10px] font-bold text-gray-500">{count} Siswa</span>
                   </div>
+                  <div className="w-full bg-gray-100 dark:bg-slate-800/50 rounded-full h-2 overflow-hidden">
+                    <div className={`h-full ${r.c} transition-all duration-1000`} style={{ width: `${w}%` }}></div>
+                  </div>
+                  {sampleNames.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mt-1">
+                      {sampleNames.map((name, i) => (
+                        <span key={i} className="text-[9px] px-2 py-0.5 bg-gray-50 dark:bg-slate-800 text-gray-500 dark:text-gray-400 rounded-md border border-gray-200/50 dark:border-slate-700/50 italic">
+                          {name}
+                        </span>
+                      ))}
+                      {count > sampleNames.length && (
+                        <span className="text-[9px] text-gray-400 px-1 py-0.5">...+{count - sampleNames.length} lainnya</span>
+                      )}
+                    </div>
+                  )}
                 </div>
               );
             })}
           </div>
         </div>
 
-        <div className="glass rounded-2xl p-5 shadow-sm">
-          <h3 className="font-semibold mb-4 text-gray-900 dark:text-white text-sm flex items-center gap-2 font-serif">
+        <div className="glass rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-slate-800">
+          <h3 className="font-semibold mb-6 text-gray-900 dark:text-white text-sm flex items-center gap-2 font-serif">
             <PieChart size={17} className="text-primary-600" /> Siswa per Kelas
           </h3>
-          <div className="space-y-2.5">
+          <div className="space-y-4">
             {filteredClasses.map((c, idx) => {
               const count = activeStudents.filter(s => s.classId === c.id).length;
               const w = Math.max((count / maxStudents) * 100, 4);
               return (
-                <div key={idx} className="flex items-center gap-3">
-                  <span className="text-xs font-medium text-gray-500 dark:text-gray-400 w-8">{c.name}</span>
-                  <div className="flex-1 bg-gray-100 dark:bg-slate-700 rounded-full h-5 overflow-hidden">
-                    <div className="h-full bg-gradient-to-r from-primary-500 to-primary-600 rounded-full flex items-center justify-end pr-2 transition-all" style={{ width: `${w}%` }}>
-                      <span className="text-[10px] text-white font-bold">{count}</span>
-                    </div>
+                <div key={idx} className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-gray-600 dark:text-gray-400">{c.name}</span>
+                    <span className="text-[10px] font-bold text-gray-400">{count} Siswa</span>
+                  </div>
+                  <div className="flex-1 bg-gray-100 dark:bg-slate-800/50 rounded-full h-2 overflow-hidden">
+                    <div className="h-full bg-gradient-to-r from-primary-500 to-primary-600 rounded-full transition-all duration-1000" style={{ width: `${w}%` }}></div>
                   </div>
                 </div>
               );
@@ -122,14 +145,14 @@ export function Dashboard() {
 
 function StatCard({ icon: Icon, label, value, bg, iconColor }: any) {
   return (
-    <div className="stat-card glass rounded-2xl p-4 shadow-sm">
+    <div className="stat-card glass rounded-2xl p-4 shadow-sm border border-white/20 dark:border-slate-800/50">
       <div className="flex items-center gap-3">
-        <div className={`w-10 h-10 ${bg} rounded-xl flex items-center justify-center`}>
+        <div className={`w-10 h-10 ${bg} rounded-xl flex items-center justify-center shadow-inner`}>
           <Icon size={18} className={iconColor} />
         </div>
         <div>
-          <p className="text-[11px] text-gray-500 dark:text-gray-400 font-medium">{label}</p>
-          <p className="text-xl font-bold text-gray-900 dark:text-white">{value}</p>
+          <p className="text-[11px] text-gray-500 dark:text-gray-400 font-bold uppercase tracking-tight">{label}</p>
+          <p className="text-xl font-black text-gray-900 dark:text-white">{value}</p>
         </div>
       </div>
     </div>
