@@ -11,7 +11,7 @@ export interface ClassData {
 export interface StudentData { id: string; nis: string; nisn?: string; name: string; classId: string; }
 export interface WeeklyScore { studentId: string; classId: string; semester: number; weeks: number; [key: string]: any; }
 export interface SASScore { studentId: string; classId: string; semester: number; pg?: number | string; isian?: number | string; uraian?: number | string; nonTes?: number | string; tes?: number | string; score: number | string; }
-export interface PracticeScore { studentId: string; classId: string; wudhu: any; quran: any; sholat: any; tayamum: any; }
+export interface PracticeScore { studentId: string; classId: string; wudhu: any; quran: any; sholat: any; tayamum: any; [key: string]: any; }
 export interface ASAJScore { studentId: string; pg: number | string; essay: number | string; }
 
 export interface AttendanceNote {
