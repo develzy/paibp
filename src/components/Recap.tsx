@@ -13,6 +13,8 @@ export function Recap() {
   const [search, setSearch] = useState<string>("");
   const [alertMsg, setAlertMsg] = useState<string | null>(null);
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' | null }>({ key: 'name', direction: 'asc' });
+  const [enableKatrol, setEnableKatrol] = useState(false);
+  const [targetMin, setTargetMin] = useState(75);
 
   const filteredClasses = store.classes.filter((c: ClassData) => c.year === store.activeYear);
   const isValidClass = filteredClasses.some((c: ClassData) => c.id === classId);
@@ -86,7 +88,7 @@ export function Recap() {
   const materialNames = cls?.babNames || defaultBabNames;
 
   const rows = useMemo(() => {
-    return students.map((s: StudentData) => {
+    const rawRows = students.map((s: StudentData) => {
       const avgW = getWeeklyAvg(s.id, classId);
       const pr = store.practiceScores.find((x: PracticeScore) => x.studentId === s.id && x.classId === classId);
       const praktik = pr ? calcFinalPractice(pr) : '-';
@@ -112,7 +114,7 @@ export function Recap() {
       const raportValue = avgW !== null && naSas !== null ? (avgW + naSas) / 2 : null;
       const asaj = isKelas6 ? calcASAJ(store.asajScores.find((x: ASAJScore) => x.studentId === s.id)) : '-';
       
-      const rowData: any = {
+      return {
         id: s.id,
         name: s.name,
         avgW: avgW !== null ? avgW.toFixed(1) : '-',
@@ -120,11 +122,40 @@ export function Recap() {
         nonTes: praktik,
         tes: tes !== null ? tes.toFixed(1) : '-',
         naSas: naSas !== null ? naSas.toFixed(1) : '-',
-        raport: raportValue !== null ? raportValue.toFixed(1) : '-',
+        raport: raportValue, // numeric for now
         asaj
       };
+    });
 
-      return rowData;
+    // Find stats for Katrol
+    let minScore = 100, maxScore = 0;
+    let hasValidScores = false;
+    rawRows.forEach(r => {
+      if (r.raport !== null) {
+        if (r.raport < minScore) minScore = r.raport;
+        if (r.raport > maxScore) maxScore = r.raport;
+        hasValidScores = true;
+      }
+    });
+
+    return rawRows.map(r => {
+      let finalRaport = r.raport;
+      if (enableKatrol && hasValidScores && r.raport !== null) {
+        if (maxScore > minScore) {
+          // Scale formula: ((x - min) / (max - min)) * (100 - targetMin) + targetMin
+          // We limit the ceiling to 100
+          finalRaport = ((r.raport - minScore) / (maxScore - minScore)) * (100 - targetMin) + targetMin;
+        } else {
+          // If all same, just set to targetMin
+          finalRaport = targetMin;
+        }
+      }
+
+      return {
+        ...r,
+        raport: finalRaport !== null ? finalRaport.toFixed(1) : '-',
+        isKatrolled: enableKatrol && r.raport !== null && finalRaport !== r.raport
+      };
     }).filter((r: any) => !search || r.name.toLowerCase().includes(search.toLowerCase()))
     .sort((a: any, b: any) => {
       if (!sortConfig.key || !sortConfig.direction) return 0;
@@ -144,7 +175,7 @@ export function Recap() {
       if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
       return 0;
     });
-  }, [students, classId, semester, search, sortConfig, store.weeklyScores, store.practiceScores, store.sasScores, store.asajScores]);
+  }, [students, classId, semester, search, sortConfig, store.weeklyScores, store.practiceScores, store.sasScores, store.asajScores, enableKatrol, targetMin]);
 
   const requestSort = (key: string) => {
     let direction: 'asc' | 'desc' = 'asc';
@@ -174,6 +205,7 @@ export function Recap() {
       base['Nilai Rapor'] = r.raport;
       base['Predikat'] = r.raport !== '-' ? getPred(+r.raport) : '-';
       base['Status'] = r.raport !== '-' ? (+r.raport >= 75 ? 'Tuntas' : 'Remidi') : '-';
+      base['Keterangan'] = r.isKatrolled ? 'Hasil Katrol' : 'Asli';
       
       if (isKelas6) {
         base['ASAJ'] = r.asaj;
@@ -198,6 +230,30 @@ export function Recap() {
         <button onClick={exportRecap} className="px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-medium flex items-center gap-1.5 shadow-sm transition text-sm">
           <Download size={15} /> Export
         </button>
+
+        <div className="flex items-center gap-3 bg-white dark:bg-slate-800 p-1.5 px-3 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input 
+              type="checkbox" 
+              checked={enableKatrol} 
+              onChange={(e) => setEnableKatrol(e.target.checked)}
+              className="w-4 h-4 rounded text-primary-600 focus:ring-primary-500"
+            />
+            <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">Mode Katrol (Proporsional)</span>
+          </label>
+          
+          {enableKatrol && (
+            <div className="flex items-center gap-2 border-l pl-3 dark:border-slate-700">
+              <span className="text-[10px] text-gray-500 uppercase font-bold">Target Min:</span>
+              <input 
+                type="number" 
+                value={targetMin} 
+                onChange={(e) => setTargetMin(Number(e.target.value))}
+                className="w-12 px-1 py-0.5 text-xs rounded border border-gray-200 dark:bg-slate-700 dark:text-white dark:border-slate-600 outline-none"
+              />
+            </div>
+          )}
+        </div>
       </div>
 
       {isValidClass && (
@@ -293,7 +349,10 @@ export function Recap() {
                   <td className="p-1 border-r border-gray-100 dark:border-slate-800">{r.nonTes}</td>
                   <td className="p-1 border-r border-gray-100 dark:border-slate-800">{r.tes}</td>
                   <td className="p-1 font-bold border-r border-gray-100 dark:border-slate-800 bg-blue-50/30 dark:bg-blue-900/10 text-blue-600 dark:text-blue-400">{r.naSas}</td>
-                  <td className="p-1 font-black border-r border-gray-100 dark:border-slate-800 text-primary-600 dark:text-primary-400">{r.raport}</td>
+                  <td className={`p-1 font-black border-r border-gray-100 dark:border-slate-800 ${r.isKatrolled ? 'text-amber-600 dark:text-amber-400' : 'text-primary-600 dark:text-primary-400'}`}>
+                    {r.raport}
+                    {r.isKatrolled && <span className="text-[8px] block leading-none font-normal opacity-70">scaled</span>}
+                  </td>
                   {isKelas6 && <td className="p-1 border-r border-gray-100 dark:border-slate-800">{r.asaj}</td>}
                   <td className="p-1 font-bold border-r border-gray-100 dark:border-slate-800">{r.raport !== '-' ? getPred(+r.raport) : '-'}</td>
                   <td className="p-1">{r.raport !== '-' ? (+r.raport >= 75 ? <span className="text-emerald-600 font-bold">Tuntas</span> : <span className="text-rose-500 font-bold">Remidi</span>) : '-'}</td>
